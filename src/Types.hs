@@ -21,10 +21,10 @@ import Data.Time.Clock.POSIX (POSIXTime)
 
 data Token = Token {
   access_token :: T.Text
-  , expiration_time :: POSIXTime
+  , expires_in :: POSIXTime
 } deriving (Show)
 
 instance FromJSON Token where
   parseJSON = withObject "Token" $ \v -> Token
     <$> v .: "access_token"
-    <*> v .: "expiration_time"
+    <*> v .: "expires_in"
