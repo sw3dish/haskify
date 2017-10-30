@@ -12,7 +12,7 @@ import Network.Wreq
 import Control.Lens
 
 -- Conversion of Haskell values to JSON.
-import Data.Aeson (toJSON)
+import Data.Aeson (toJSON, decode)
 
 -- Easy traversal of JSON data.
 import Data.Aeson.Lens (key, nth)
@@ -26,6 +26,8 @@ import Data.Monoid
 
 import Types
 
+import Data.Text as T
+
 apiUrlBase, apiVersion :: String
 apiUrlBase = "https://api.spotify.com/"
 apiVersion = "v1/"
@@ -38,5 +40,4 @@ requestToken clientId secret = do
   let requestUrl = authUrlBase <> "api/token"
   let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
   r <- postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
-  --response body also contains expiration time
-  return $ Token (r ^? responseBody . key "access_token") (r ^? responseBody . key "expiration_time")
+  return $   ((r ^? responseBody >>= decode) :: Maybe Token)
