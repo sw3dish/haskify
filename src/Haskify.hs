@@ -24,6 +24,8 @@ import qualified Data.ByteString.Base64 as B64 (encode)
 
 import Data.Monoid
 
+import Types
+
 apiUrlBase, apiVersion :: String
 apiUrlBase = "https://api.spotify.com/"
 apiVersion = "v1/"
@@ -37,4 +39,4 @@ requestToken clientId secret = do
   let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
   r <- postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
   --response body also contains expiration time
-  return $ r ^? responseBody . key "access_token"
+  return $ Token (r ^? responseBody . key "access_token") (r ^? responseBody . key "expiration_time")
