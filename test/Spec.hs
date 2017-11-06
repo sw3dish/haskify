@@ -2,7 +2,7 @@
 
 import Haskify
 
-import Secrets
+import Secrets (testClientId, testClientSecret)
 
 main :: IO ()
 main = do
