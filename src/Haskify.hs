@@ -21,7 +21,7 @@ import Data.Aeson.Lens (key, nth)
 
 -- Encode strings in b64 as required by authorization api
 import qualified Data.ByteString.Base64 as B64 (encode)
-
+import qualified Data.ByteString as B
 import Data.Monoid
 
 import Types
@@ -40,12 +40,14 @@ authUrlBase :: String
 authUrlBase = "https://accounts.spotify.com/"
 
 -- Request an auth token from the spotify api
+requestToken :: B.ByteString -> B.ByteString -> IO (Maybe Token)
 requestToken clientId secret = do
   let requestUrl = authUrlBase <> "api/token"
   let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
   r <- postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
   return $   ((r ^? responseBody >>= decode) :: Maybe Token)
 
+getAlbum :: Token -> String -> IO (Maybe Album)
 getAlbum auth albumId = do
   let requestUrl = (apiUrlBase <> apiVersion <> "albums/" <> albumId)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
@@ -53,6 +55,7 @@ getAlbum auth albumId = do
   return $ ((r ^? responseBody >>= decode) :: Maybe Album)
   --return $ ((r ^? responseBody >>= decode) :: Maybe Value)
 
+getAudioFeatures :: Token -> String -> IO (Maybe AudioFeatures)
 getAudioFeatures auth track_id = do
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
