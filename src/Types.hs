@@ -83,7 +83,11 @@ data Image = Image {
   ,image_width :: Maybe Integer
   ,image_url :: T.Text} deriving (Show, Generic)
 
-instance FromJSON Image
+instance FromJSON Image where
+  parseJSON = withObject "Image" $ \v -> Image
+    <$> (v .:? "height" .!= Nothing)
+    <*> (v .:? "width" .!= Nothing)
+    <*> (v .: "url")
 
 data Paging a = Paging {
    paging_href :: T.Text
