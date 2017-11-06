@@ -15,8 +15,9 @@ import Network.Wreq
 import Control.Lens
 
 -- Conversion of Haskell values to JSON.
-import Data.Aeson (toJSON, FromJSON, parseJSON, withObject, (.:), (.:?), (.!=))
+import Data.Aeson (toJSON, FromJSON, parseJSON, withObject, (.:), (.:?), (.!=), Value)
 
+import Data.Aeson.Types
 -- Easy traversal of JSON data.
 import Data.Aeson.Lens (key, nth)
 
@@ -179,3 +180,6 @@ instance FromJSON AudioFeatures where
       audiofeatures_obj_type audiofeatures_id audiofeatures_uri
       audiofeatures_track_href audiofeatures_analysis_url
       audiofeatures_duration_ms audiofeatures_time_signature
+
+audiofeatures_array :: Value -> Parser [AudioFeatures]
+audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_features"

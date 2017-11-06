@@ -28,9 +28,12 @@ import Types
 
 import Data.Text as T
 
+import Data.List as L
+
 -- Convert from text to bytestring
 import Data.Text.Encoding (encodeUtf8)
 import Data.Aeson (toJSON, FromJSON, parseJSON, withObject, (.:))
+import Data.Aeson.Types (parseMaybe)
 
 apiUrlBase, apiVersion :: String
 apiUrlBase = "https://api.spotify.com/"
@@ -61,3 +64,10 @@ getAudioFeatures auth track_id = do
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- getWith options requestUrl
   return $ ((r ^? responseBody >>= decode) :: Maybe AudioFeatures)
+
+getAudioFeaturesMultiple :: Token -> [String] -> IO (Maybe [AudioFeatures])
+getAudioFeaturesMultiple auth track_ids = do
+  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (L.intercalate "," track_ids))
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- getWith options requestUrl
+  return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
