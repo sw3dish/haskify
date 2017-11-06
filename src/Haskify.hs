@@ -12,12 +12,21 @@ import Network.Wreq
 import Control.Lens
 
 -- Conversion of Haskell values to JSON.
-import Data.Aeson (toJSON)
+import Data.Aeson (toJSON, decode)
 
 -- Easy traversal of JSON data.
 import Data.Aeson.Lens (key, nth)
 
 -- End recommended imports
+
+-- Encode strings in b64 as required by authorization api
+import qualified Data.ByteString.Base64 as B64 (encode)
+
+import Data.Monoid
+
+import Types
+
+import Data.Text as T
 
 apiUrlBase, apiVersion :: String
 apiUrlBase = "https://api.spotify.com/"
@@ -25,3 +34,10 @@ apiVersion = "v1/"
 
 authUrlBase :: String
 authUrlBase = "https://accounts.spotify.com/"
+
+-- Request an auth token from the spotify api
+requestToken clientId secret = do
+  let requestUrl = authUrlBase <> "api/token"
+  let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
+  r <- postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
+  return $   ((r ^? responseBody >>= decode) :: Maybe Token)

@@ -2,5 +2,10 @@
 
 import Haskify
 
+import Secrets (testClientId, testClientSecret)
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = do
+  testRequestToken
+
+testRequestToken = requestToken testClientId testClientSecret >>= print
