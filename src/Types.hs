@@ -6,6 +6,8 @@ module Types where
 -- Make it easy to write literal ByteString and Text values.
 {-# LANGUAGE OverloadedStrings #-}
 
+{-# LANGUAGE RecordWildCards #-}
+
 -- Our handy module.
 import Network.Wreq
 
@@ -126,3 +128,29 @@ data TrackLink = TrackLink {
   ,tracklink_url :: T.Text} deriving (Show, Generic)
 
 instance FromJSON TrackLink
+
+data AudioFeatures = AudioFeatures {
+  audiofeatures_danceability :: Float
+  -- ,audiofeatures_energy :: Float
+  -- ,audiofeatures_key :: Integer
+  -- ,audiofeatures_loudness :: Float
+  -- ,audiofeatures_mode :: Integer
+  -- ,audiofeatures_speechiness :: Float
+  -- ,audiofeatures_acousticness :: Float
+  -- ,audiofeatures_instrumentalness :: Float
+  -- ,audiofeatures_liveness :: Float
+  -- ,audiofeatures_valence :: Float
+  -- ,audiofeatures_tempo :: Float
+  -- ,audiofeatures_obj_type :: T.Text -- audio_features
+  -- ,audiofeatures_id :: T.Text
+  -- ,audiofeatures_uri :: T.Text
+  -- ,audiofeatures_track_href :: T.Text
+  -- ,audiofeatures_analysis_url :: T.Text
+  -- ,audiofeatures_duration_ms :: Integer
+  -- ,audiofeatures_time_signature :: Integer
+} deriving (Show, Generic)
+
+instance FromJSON AudioFeatures where
+  parseJSON = withObject "audiofeatures" $ \o -> do
+    audiofeatures_danceability <- o .: "danceability"
+    return $ AudioFeatures audiofeatures_danceability

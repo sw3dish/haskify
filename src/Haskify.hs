@@ -52,3 +52,9 @@ getAlbum auth albumId = do
   r <- getWith options requestUrl
   return $ ((r ^? responseBody >>= decode) :: Maybe Album)
   --return $ ((r ^? responseBody >>= decode) :: Maybe Value)
+
+getAudioFeatures auth track_id = do
+  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- getWith options requestUrl
+  return $ ((r ^? responseBody >>= decode) :: Maybe AudioFeatures)
