@@ -11,7 +11,7 @@ main :: IO ()
 main = do
   testRequestToken
   testGetAlbum
-  testGetAudioFeatures
+  testGetAudioFeaturesSingle
   testGetAudioFeaturesMultiple
 
 testRequestToken = requestToken testClientId testClientSecret >>= print
@@ -22,10 +22,10 @@ testGetAlbum = do
   album <- getAlbum auth album_id
   print album
 
-testGetAudioFeatures = do
+testGetAudioFeaturesSingle = do
   let track_id = "1ZLfI1KqHS2JFP7lKsC8bl" :: String
   auth <- fromJust <$> requestToken testClientId testClientSecret
-  audio_features <- getAudioFeatures auth track_id
+  audio_features <- getAudioFeaturesSingle auth track_id
   print audio_features
 
 testGetAudioFeaturesMultiple = do
