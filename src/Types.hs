@@ -1,8 +1,5 @@
 module Types where
 
--- get FromJSON instances for free
-{-# LANGUAGE DeriveGeneric #-}
-
 -- Make it easy to write literal ByteString and Text values.
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -27,8 +24,6 @@ import Data.Time.Clock.POSIX (POSIXTime)
 
 import Data.Maybe
 import Data.Map
-
-import GHC.Generics
 
 data Token = Token {
   access_token :: T.Text
@@ -214,7 +209,7 @@ data AudioFeatures = AudioFeatures {
   ,audiofeatures_analysis_url :: T.Text
   ,audiofeatures_duration_ms :: Integer
   ,audiofeatures_time_signature :: Integer
-} deriving (Show, Generic)
+} deriving (Show)
 
 instance FromJSON AudioFeatures where
   parseJSON = withObject "audiofeatures" $ \o -> do

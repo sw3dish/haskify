@@ -19,7 +19,7 @@ library
   build-depends:       base >= 4.7 && < 5, wreq, lens, aeson, lens-aeson
                      , base64-bytestring, text, time, bytestring, containers
   default-language:    Haskell2010
-  default-extensions:  OverloadedStrings, DeriveGeneric, RecordWildCards
+  default-extensions:  OverloadedStrings, RecordWildCards
 
 executable haskify-exe
   hs-source-dirs:      app
