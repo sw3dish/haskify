@@ -50,8 +50,8 @@ requestToken clientId secret = do
   r <- postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
   return $   ((r ^? responseBody >>= decode) :: Maybe Token)
 
-getAlbum :: Token -> String -> IO (Maybe Album)
-getAlbum auth albumId = do
+getAlbumSingle :: Token -> String -> IO (Maybe Album)
+getAlbumSingle auth albumId = do
   let requestUrl = (apiUrlBase <> apiVersion <> "albums/" <> albumId)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- getWith options requestUrl

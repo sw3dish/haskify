@@ -11,16 +11,16 @@ import Secrets (testClientId, testClientSecret)
 main :: IO ()
 main = do
   testRequestToken
-  testGetAlbum
+  testGetAlbumSingle
   testGetAudioFeaturesSingle
   testGetAudioFeaturesMultiple
 
 testRequestToken = requestToken testClientId testClientSecret >>= print
 
-testGetAlbum = do
+testGetAlbumSingle = do
   let album_id = "3EwfQtjvyRAXsPWAKO5FDP"
   auth <- requestToken testClientId testClientSecret
-  album <- join <$> (sequence $ getAlbum <$> auth <*> (pure album_id))
+  album <- join <$> (sequence $ getAlbumSingle <$> auth <*> (pure album_id))
   print album
 
 testGetAudioFeaturesSingle = do
