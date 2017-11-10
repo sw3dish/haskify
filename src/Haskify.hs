@@ -57,6 +57,13 @@ getAlbumSingle auth albumId = do
   r <- getWith options requestUrl
   return $ ((r ^? responseBody >>= decode) :: Maybe Album)
 
+getAlbumMultiple :: Token -> [String] -> IO (Maybe [Album])
+getAlbumMultiple auth albumIds = do
+  let requestUrl = (apiUrlBase <> apiVersion <> "albums?ids=" <> (L.intercalate "," albumIds))
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- getWith options requestUrl
+  return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
+
 getAudioFeaturesSingle :: Token -> String -> IO (Maybe AudioFeatures)
 getAudioFeaturesSingle auth track_id = do
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)

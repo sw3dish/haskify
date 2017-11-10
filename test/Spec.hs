@@ -12,6 +12,7 @@ main :: IO ()
 main = do
   testRequestToken
   testGetAlbumSingle
+  testGetAlbumMultiple
   testGetAudioFeaturesSingle
   testGetAudioFeaturesMultiple
 
@@ -22,6 +23,12 @@ testGetAlbumSingle = do
   auth <- requestToken testClientId testClientSecret
   album <- join <$> (sequence $ getAlbumSingle <$> auth <*> (pure album_id))
   print album
+
+testGetAlbumMultiple = do
+  let album_ids = ["6084R9tVaGpB9yefy7ObuQ", "5Dbax7G8SWrP9xyzkOvy2F", "2DuGRzpsUNe6jzGpCniZYR"] :: [String]
+  auth <- fromJust <$> requestToken testClientId testClientSecret
+  albums <- getAlbumMultiple auth album_ids
+  print albums
 
 testGetAudioFeaturesSingle = do
   let track_id = "1ZLfI1KqHS2JFP7lKsC8bl" :: String

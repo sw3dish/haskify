@@ -81,6 +81,9 @@ instance FromJSON Album where
     <*> (v .: "type")
     <*> (v .: "uri")
 
+album_array :: Value -> Parser [Album]
+album_array = withObject "album_array" $ \o -> o .: "albums"
+
 data ArtistSimplified = ArtistSimplified {
    artist_external_urls :: ExternalURL
   ,artist_href :: T.Text
