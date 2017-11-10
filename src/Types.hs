@@ -6,6 +6,8 @@ module Types where
 -- Make it easy to write literal ByteString and Text values.
 {-# LANGUAGE OverloadedStrings #-}
 
+{-# LANGUAGE RecordWildCards #-}
+
 -- Our handy module.
 import Network.Wreq
 
@@ -13,8 +15,9 @@ import Network.Wreq
 import Control.Lens
 
 -- Conversion of Haskell values to JSON.
-import Data.Aeson (toJSON, FromJSON, parseJSON, withObject, (.:), (.:?), (.!=))
+import Data.Aeson (toJSON, FromJSON, parseJSON, withObject, (.:), (.:?), (.!=), Value)
 
+import Data.Aeson.Types
 -- Easy traversal of JSON data.
 import Data.Aeson.Lens (key, nth)
 
@@ -188,3 +191,57 @@ instance FromJSON TrackLink where
     <*> (v .: "id")
     <*> (v .: "type")
     <*> (v .: "uri")
+
+data AudioFeatures = AudioFeatures {
+  audiofeatures_danceability :: Float
+  ,audiofeatures_energy :: Float
+  ,audiofeatures_key :: Integer
+  ,audiofeatures_loudness :: Float
+  ,audiofeatures_mode :: Integer
+  ,audiofeatures_speechiness :: Float
+  ,audiofeatures_acousticness :: Float
+  ,audiofeatures_instrumentalness :: Float
+  ,audiofeatures_liveness :: Float
+  ,audiofeatures_valence :: Float
+  ,audiofeatures_tempo :: Float
+  ,audiofeatures_obj_type :: T.Text -- audio_features
+  ,audiofeatures_id :: T.Text
+  ,audiofeatures_uri :: T.Text
+  ,audiofeatures_track_href :: T.Text
+  ,audiofeatures_analysis_url :: T.Text
+  ,audiofeatures_duration_ms :: Integer
+  ,audiofeatures_time_signature :: Integer
+} deriving (Show, Generic)
+
+instance FromJSON AudioFeatures where
+  parseJSON = withObject "audiofeatures" $ \o -> do
+    audiofeatures_danceability <- o .: "danceability"
+    audiofeatures_energy <- o .: "energy"
+    audiofeatures_key <- o .: "key"
+    audiofeatures_loudness <- o .: "loudness"
+    audiofeatures_mode <- o .: "mode"
+    audiofeatures_speechiness <- o .: "speechiness"
+    audiofeatures_acousticness <- o .: "acousticness"
+    audiofeatures_instrumentalness <- o .: "instrumentalness"
+    audiofeatures_liveness <- o .: "liveness"
+    audiofeatures_valence <- o .: "valence"
+    audiofeatures_tempo <- o .: "tempo"
+    audiofeatures_obj_type <- o .: "type"
+    audiofeatures_id <- o .: "id"
+    audiofeatures_uri <- o .: "uri"
+    audiofeatures_track_href <- o .: "track_href"
+    audiofeatures_analysis_url <- o .: "analysis_url"
+    audiofeatures_duration_ms <- o .: "duration_ms"
+    audiofeatures_time_signature <- o .: "time_signature"
+
+    return $ AudioFeatures
+      audiofeatures_danceability audiofeatures_energy
+      audiofeatures_key audiofeatures_loudness audiofeatures_mode
+      audiofeatures_speechiness audiofeatures_acousticness audiofeatures_instrumentalness
+      audiofeatures_liveness audiofeatures_valence audiofeatures_tempo
+      audiofeatures_obj_type audiofeatures_id audiofeatures_uri
+      audiofeatures_track_href audiofeatures_analysis_url
+      audiofeatures_duration_ms audiofeatures_time_signature
+
+audiofeatures_array :: Value -> Parser [AudioFeatures]
+audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_features"
