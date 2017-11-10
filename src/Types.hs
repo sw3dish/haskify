@@ -23,6 +23,7 @@ import qualified Data.Text as T
 import Data.Time.Clock.POSIX (POSIXTime)
 
 import Data.Maybe
+import Data.Map
 
 import GHC.Generics
 
@@ -54,9 +55,28 @@ data Album = Album {
   ,album_release_date_precision ::T.Text -- (year|month|day) would be used in parsing date
   ,album_tracks :: Paging TrackSimplified
   ,album_obj_type :: T.Text -- Should always be "album" include?
-  ,album_uri :: T.Text } deriving (Show, Generic)
+  ,album_uri :: T.Text} deriving (Show)
 
-instance FromJSON Album
+instance FromJSON Album where
+  parseJSON = withObject "Album" $ \v -> Album
+    <$> (v .: "album_type")
+    <*> (v .: "artists")
+    <*> (v .: "available_markets")
+    <*> (v .: "copyrights")
+    <*> (v .: "external_ids")
+    <*> (v .: "external_urls")
+    <*> (v .: "genres")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .: "images")
+    <*> (v .: "label")
+    <*> (v .: "name")
+    <*> (v .: "popularity")
+    <*> (v .: "release_date")
+    <*> (v .: "release_date_precision")
+    <*> (v .: "tracks")
+    <*> (v .: "type")
+    <*> (v .: "uri")
 
 data ArtistSimplified = ArtistSimplified {
    artist_external_urls :: ExternalURL
@@ -64,29 +84,39 @@ data ArtistSimplified = ArtistSimplified {
   ,artist_id :: T.Text
   ,artist_name :: T.Text
   ,artist_obj_type :: T.Text -- artist
-  ,artist_uri :: T.Text } deriving (Show, Generic)
+  ,artist_uri :: T.Text } deriving (Show)
 
-instance FromJSON ArtistSimplified
+instance FromJSON ArtistSimplified where
+  parseJSON = withObject "ArtistSimplified" $ \v -> ArtistSimplified
+    <$> (v .: "external_urls")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .: "name")
+    <*> (v .: "type")
+    <*> (v .: "uri")
 
 data Copyright = Copyright {
    copyright_text :: T.Text
-  ,copyright_obj_type :: T.Text} deriving (Show, Generic) -- C = copyright, P = performance copyright. Make enum?
+  ,copyright_obj_type :: T.Text} deriving (Show) -- C = copyright, P = performance copyright. Make enum?
 
-instance FromJSON Copyright
+instance FromJSON Copyright where
+  parseJSON = withObject "Copyright" $ \v -> Copyright
+    <$> (v .: "text")
+    <*> (v .: "type")
 
-type ExternalID = (T.Text, T.Text)
+type ExternalID = Map T.Text T.Text
 
-type ExternalURL = (T.Text, T.Text)
+type ExternalURL = Map T.Text T.Text
 
 data Image = Image {
    image_height :: Maybe Integer
   ,image_width :: Maybe Integer
-  ,image_url :: T.Text} deriving (Show, Generic)
+  ,image_url :: T.Text} deriving (Show)
 
 instance FromJSON Image where
   parseJSON = withObject "Image" $ \v -> Image
-    <$> (v .:? "height" .!= Nothing)
-    <*> (v .:? "width" .!= Nothing)
+    <$> (v .:? "height")
+    <*> (v .:? "width")
     <*> (v .: "url")
 
 data Paging a = Paging {
@@ -96,9 +126,18 @@ data Paging a = Paging {
   ,paging_next :: Maybe T.Text
   ,paging_offset :: Integer
   ,paging_previous :: Maybe T.Text
-  ,paging_total :: Integer} deriving (Show, Generic)
+  ,paging_total :: Integer
+} deriving (Show)
 
-instance FromJSON a => FromJSON (Paging a)
+instance FromJSON a => FromJSON (Paging a) where
+  parseJSON = withObject "Paging" $ \v -> Paging
+    <$> (v .: "href")
+    <*> (v .: "items")
+    <*> (v .: "limit")
+    <*> (v .:? "next")
+    <*> (v .: "offset")
+    <*> (v .:? "previous")
+    <*> (v .: "total")
 
 data TrackSimplified = TrackSimplified {
    track_artists :: [ArtistSimplified]
@@ -108,21 +147,44 @@ data TrackSimplified = TrackSimplified {
   ,track_explicit :: Bool
   ,track_external_urls :: ExternalURL
   ,track_href :: T.Text
-  ,track_is_playable :: Bool
-  ,track_linked_from :: TrackLink
+  ,track_id :: T.Text
+  ,track_is_playable :: Maybe Bool -- only present when relinking applied
+  ,track_linked_from :: Maybe TrackLink -- only present when relinking applied
   ,track_name :: T.Text
   ,track_preview_url :: Maybe T.Text
   ,track_track_number :: Integer
   ,track_obj_type :: T.Text -- "track"
-  ,track_uri :: T.Text} deriving (Show, Generic)
+  ,track_uri :: T.Text} deriving (Show)
 
-instance FromJSON TrackSimplified
+instance FromJSON TrackSimplified where
+  parseJSON = withObject "TrackSimplified" $ \v -> TrackSimplified
+    <$> (v .: "artists")
+    <*> (v .: "available_markets")
+    <*> (v .: "disc_number")
+    <*> (v .: "duration_ms")
+    <*> (v .: "explicit")
+    <*> (v .: "external_urls")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .:? "is_playable")
+    <*> (v .:? "linked_from")
+    <*> (v .: "name")
+    <*> (v .:? "preview_url")
+    <*> (v .: "track_number")
+    <*> (v .: "type")
+    <*> (v .: "uri")
 
 data TrackLink = TrackLink {
    tracklink_external_urls :: ExternalURL
   ,tracklink_href :: T.Text
   ,tracklink_id :: T.Text
   ,tracklink_obj_type :: T.Text -- "track"
-  ,tracklink_url :: T.Text} deriving (Show, Generic)
+  ,tracklink_url :: T.Text} deriving (Show)
 
-instance FromJSON TrackLink
+instance FromJSON TrackLink where
+  parseJSON = withObject "TrackLink" $ \v -> TrackLink
+    <$> (v .: "external_urls")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .: "type")
+    <*> (v .: "uri")
