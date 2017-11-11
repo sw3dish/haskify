@@ -36,7 +36,7 @@ instance FromJSON Token where
     <*> v .: "expires_in"
 
 data Album = Album {
-   album_type :: T.Text
+   album_type :: AlbumType
   ,album_artists    :: [ArtistSimplified]
   ,album_available_markets :: [T.Text]
   ,album_copyrights :: [Copyright]
@@ -75,6 +75,16 @@ instance FromJSON Album where
     <*> (v .: "tracks")
     <*> (v .: "type")
     <*> (v .: "uri")
+
+data AlbumType = TypeAlbum | TypeSingle | TypeCompilation deriving (Show)
+
+instance FromJSON AlbumType where
+  parseJSON (String s) = pure $ makeAlbumType s
+
+makeAlbumType :: T.Text -> AlbumType
+makeAlbumType "album" = TypeAlbum
+makeAlbumType "single" = TypeSingle
+makeAlbumType "compilation" = TypeCompilation
 
 album_array :: Value -> Parser [Album]
 album_array = withObject "album_array" $ \o -> o .: "albums"
