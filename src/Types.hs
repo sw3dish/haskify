@@ -281,3 +281,10 @@ instance FromJSON AudioFeatures where
 
 audiofeatures_array :: Value -> Parser [AudioFeatures]
 audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_features"
+
+data SearchType = SearchTypeAlbum | SearchTypePlaylist | SearchTypeArtist | SearchTypeTrack deriving (Show, Enum, Bounded)
+
+searchTypeString SearchTypeAlbum = "album"
+searchTypeString SearchTypePlaylist = "playlist"
+searchTypeString SearchTypeArtist = "artist"
+searchTypeString SearchTypeTrack = "track"
