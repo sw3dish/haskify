@@ -77,3 +77,12 @@ getAudioFeaturesMultiple auth track_ids = do
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- getWith options requestUrl
   return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
+
+--TODO: Come up with a haskell encoding for the query string
+searchAlbum :: Token -> String ->  IO ( Maybe ( Paging  AlbumSimplified ))
+searchAlbum auth query = do
+  let search_type = "album" -- replace wih string generated from enumartion type
+  let requestUrl = apiUrlBase <> apiVersion <> "search?type=" <> search_type <> "&q=" <> query
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- getWith options requestUrl
+  return $ ((r ^? responseBody) >>= decode)
