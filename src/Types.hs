@@ -76,6 +76,34 @@ instance FromJSON Album where
     <*> (v .: "type")
     <*> (v .: "uri")
 
+-- This data structure duplicates a large amount of the
+-- full album structre. We need to come up with some way to
+-- encode this relationship.
+data AlbumSimplified = AlbumSimplified {
+   albumsimplified_type :: AlbumType
+  ,albumsimplified_artists :: [ArtistSimplified]
+  ,albumsimplified_available_markets :: [T.Text]
+  ,albumsimplified_external_urls :: ExternalURL
+  ,albumsimplified_href :: T.Text
+  ,albumsimplified_id :: T.Text
+  ,albumsimplified_images :: [Image]
+  ,albumsimplified_name :: T.Text
+  ,albumsimplified_obj_type :: T.Text -- album
+  ,albumsimplified_uri :: T.Text} deriving (Show)
+
+instance FromJSON AlbumSimplified where
+  parseJSON = withObject "AlbumSimplified" $ \v -> AlbumSimplified
+    <$> (v .: "album_type")
+    <*> (v .: "artists")
+    <*> (v .: "available_markets")
+    <*> (v .: "external_urls")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .: "images")
+    <*> (v .: "name")
+    <*> (v .: "type")
+    <*> (v .: "uri")
+
 data AlbumType = TypeAlbum | TypeSingle | TypeCompilation deriving (Show)
 
 instance FromJSON AlbumType where
