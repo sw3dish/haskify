@@ -41,3 +41,7 @@ testGetAudioFeaturesMultiple = do
   auth <- fromJust <$> requestToken testClientId testClientSecret
   audio_features <- getAudioFeaturesMultiple auth track_ids
   print audio_features
+
+testGetPagingNext do
+  auth <- fromJust <$> requestToken testClientId testClientSecret
+
