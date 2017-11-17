@@ -35,6 +35,8 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.Aeson (toJSON, FromJSON, parseJSON, withObject, (.:))
 import Data.Aeson.Types (parseMaybe)
 
+import Control.Monad
+
 apiUrlBase, apiVersion :: String
 apiUrlBase = "https://api.spotify.com/"
 apiVersion = "v1/"
@@ -77,3 +79,13 @@ getAudioFeaturesMultiple auth track_ids = do
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- getWith options requestUrl
   return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
+
+getPagingNext,getPagingPrevious :: FromJSON a => Token -> Paging a -> IO (Maybe (Paging a))
+getPagingNext     auth page = join <$> (mapM (getPaging auth . show) $ paging_next page)
+getPagingPrevious auth page = join <$> (mapM (getPaging auth . show) $ paging_previous page)
+
+getPaging :: FromJSON a => Token -> String -> IO(Maybe (Paging a))
+getPaging auth requestUrl = do
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- getWith options requestUrl
+  return $ (r ^? responseBody) >>= decode
