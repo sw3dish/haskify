@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Haskify
+import Types
 import Data.Maybe (fromJust)
 import Control.Monad
 import qualified Data.ByteString as B
@@ -10,12 +11,13 @@ import Secrets (testClientId, testClientSecret)
 
 main :: IO ()
 main = do
-  testRequestToken
-  testGetAlbumSingle
-  testGetAlbumMultiple
-  testGetAudioFeaturesSingle
-  testGetAudioFeaturesMultiple
-  testGetRecentReleases
+--  testRequestToken
+--  testGetAlbumSingle
+--  testGetAlbumMultiple
+--  testGetAudioFeaturesSingle
+--  testGetAudioFeaturesMultiple
+  testGetPagingNext
+--  testGetRecentReleases
 
 testRequestToken = requestToken testClientId testClientSecret >>= print
 
@@ -43,9 +45,12 @@ testGetAudioFeaturesMultiple = do
   audio_features <- getAudioFeaturesMultiple auth track_ids
   print audio_features
 
-testGetPagingNext do
-  auth <- fromJust <$> requestToken testClientId testClientSecret
-  return ()
+testGetPagingNext = do
+  auth <- requestToken testClientId testClientSecret
+  testPage <- join <$> (sequence $ getNewReleases <$> auth )
+  print testPage
+  nextPage <- sequence $ (getPagingNext <$> auth <*> ( newreleases_albums <$> testPage))
+  print nextPage
 
 testGetRecentReleases = do
   auth <- requestToken testClientId testClientSecret

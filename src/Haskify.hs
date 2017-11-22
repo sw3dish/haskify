@@ -81,14 +81,14 @@ getAudioFeaturesMultiple auth track_ids = do
   return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
 
 getPagingNext,getPagingPrevious :: FromJSON a => Token -> Paging a -> IO (Maybe (Paging a))
-getPagingNext     auth page = join <$> (mapM (getPaging auth . show) $ paging_next page)
-getPagingPrevious auth page = join <$> (mapM (getPaging auth . show) $ paging_previous page)
+getPagingNext     auth page = join <$> (mapM (getPaging auth . T.unpack) $ paging_next page)
+getPagingPrevious auth page = join <$> (mapM (getPaging auth . T.unpack) $ paging_previous page)
 
 getPaging :: FromJSON a => Token -> String -> IO(Maybe (Paging a))
-getPaging auth requestUrl = do
+getPaging auth requestUrl = putStrLn requestUrl >> do
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- getWith options requestUrl
-  return $ (r ^? responseBody) >>= decode
+  (print (r ^? responseBody)) >> (return $ (r ^? responseBody) >>= decode)
 
 -- optional arguments that should be implemented: country, limit, offset
 getNewReleases :: Token -> IO (Maybe NewReleasesResponse)

@@ -285,10 +285,12 @@ audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_featu
 -- The API spec says that the message should always be present. In  practice, it seems to never be present.
 -- This field could be removed if we can confirm that no message is given in response.
 -- It might be worth reporting this as an issue to the developers of the API.
-newtype NewReleasesResponse = NewReleasesResponse (Maybe T.Text, Paging AlbumSimplified) deriving (Show)
+data NewReleasesResponse = NewReleasesResponse {
+    newreleases_message :: Maybe T.Text
+   ,newreleases_albums :: Paging AlbumSimplified} deriving (Show)
 
 instance FromJSON NewReleasesResponse where
   parseJSON = withObject "NewReleaseResponse" $ \v -> do
     message <- v .:? "message"
     content <- v .: "albums"
-    return $ NewReleasesResponse (message, content)
+    return $ NewReleasesResponse message content
