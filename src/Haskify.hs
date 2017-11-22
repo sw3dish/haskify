@@ -77,3 +77,11 @@ getAudioFeaturesMultiple auth track_ids = do
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- getWith options requestUrl
   return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
+
+-- optional arguments that should be implemented: country, limit, offset
+getNewReleases :: Token -> IO (Maybe NewReleasesResponse)
+getNewReleases auth = do
+  let requestUrl = (apiUrlBase <> apiVersion <> "browse/new-releases/")
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- getWith options requestUrl
+  return $ r ^? responseBody >>= decode

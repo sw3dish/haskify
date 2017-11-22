@@ -15,6 +15,7 @@ main = do
   testGetAlbumMultiple
   testGetAudioFeaturesSingle
   testGetAudioFeaturesMultiple
+  testGetRecentReleases
 
 testRequestToken = requestToken testClientId testClientSecret >>= print
 
@@ -41,3 +42,8 @@ testGetAudioFeaturesMultiple = do
   auth <- fromJust <$> requestToken testClientId testClientSecret
   audio_features <- getAudioFeaturesMultiple auth track_ids
   print audio_features
+
+testGetRecentReleases = do
+  auth <- requestToken testClientId testClientSecret
+  album <- join <$> (sequence $ getNewReleases <$> auth )
+  print album
