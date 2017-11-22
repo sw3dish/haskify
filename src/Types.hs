@@ -76,6 +76,34 @@ instance FromJSON Album where
     <*> (v .: "type")
     <*> (v .: "uri")
 
+-- This data structure duplicates a large amount of the
+-- full album structre. We need to come up with some way to
+-- encode this relationship.
+data AlbumSimplified = AlbumSimplified {
+   albumsimplified_type :: AlbumType
+  ,albumsimplified_artists :: [ArtistSimplified]
+  ,albumsimplified_available_markets :: [T.Text]
+  ,albumsimplified_external_urls :: ExternalURL
+  ,albumsimplified_href :: T.Text
+  ,albumsimplified_id :: T.Text
+  ,albumsimplified_images :: [Image]
+  ,albumsimplified_name :: T.Text
+  ,albumsimplified_obj_type :: T.Text -- album
+  ,albumsimplified_uri :: T.Text} deriving (Show)
+
+instance FromJSON AlbumSimplified where
+  parseJSON = withObject "AlbumSimplified" $ \v -> AlbumSimplified
+    <$> (v .: "album_type")
+    <*> (v .: "artists")
+    <*> (v .: "available_markets")
+    <*> (v .: "external_urls")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .: "images")
+    <*> (v .: "name")
+    <*> (v .: "type")
+    <*> (v .: "uri")
+
 data AlbumType = TypeAlbum | TypeSingle | TypeCompilation deriving (Show)
 
 instance FromJSON AlbumType where
@@ -253,3 +281,14 @@ instance FromJSON AudioFeatures where
 
 audiofeatures_array :: Value -> Parser [AudioFeatures]
 audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_features"
+
+-- The API spec says that the message should always be present. In  practice, it seems to never be present.
+-- This field could be removed if we can confirm that no message is given in response.
+-- It might be worth reporting this as an issue to the developers of the API.
+newtype NewReleasesResponse = NewReleasesResponse (Maybe T.Text, Paging AlbumSimplified) deriving (Show)
+
+instance FromJSON NewReleasesResponse where
+  parseJSON = withObject "NewReleaseResponse" $ \v -> do
+    message <- v .:? "message"
+    content <- v .: "albums"
+    return $ NewReleasesResponse (message, content)

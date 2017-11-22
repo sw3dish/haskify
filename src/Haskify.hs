@@ -89,3 +89,11 @@ getPaging auth requestUrl = do
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- getWith options requestUrl
   return $ (r ^? responseBody) >>= decode
+
+-- optional arguments that should be implemented: country, limit, offset
+getNewReleases :: Token -> IO (Maybe NewReleasesResponse)
+getNewReleases auth = do
+  let requestUrl = (apiUrlBase <> apiVersion <> "browse/new-releases/")
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- getWith options requestUrl
+  return $ r ^? responseBody >>= decode
