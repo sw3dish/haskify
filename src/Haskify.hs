@@ -47,8 +47,6 @@ apiVersion = "v1/"
 authUrlBase :: String
 authUrlBase = "https://accounts.spotify.com/"
 
-type HaskifyAction = State.StateT Token (MaybeT IO)
-
 -- Request an auth token from the spotify api
 -- Injects new auth token into state monad
 requestToken :: B.ByteString -> B.ByteString -> HaskifyAction ()

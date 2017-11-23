@@ -24,6 +24,14 @@ import Data.Time.Clock.POSIX (POSIXTime)
 
 import Data.Maybe
 import Data.Map
+import Control.Monad
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
+import Control.Monad.IO.Class
+import Control.Monad.Trans.State.Lazy
+import qualified Control.Monad.Trans.State.Lazy as State
+
+type HaskifyAction = State.StateT Token (MaybeT IO)
 
 data Token = Token {
   access_token :: T.Text
