@@ -38,6 +38,7 @@ import Data.Aeson.Types (parseMaybe)
 import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
 import Control.Monad.IO.Class
+import qualified Control.Monad.Trans.State.Lazy as State
 
 apiUrlBase, apiVersion :: String
 apiUrlBase = "https://api.spotify.com/"
@@ -46,13 +47,17 @@ apiVersion = "v1/"
 authUrlBase :: String
 authUrlBase = "https://accounts.spotify.com/"
 
+type HaskifyAction = State.StateT Token (MaybeT IO)
+
 -- Request an auth token from the spotify api
-requestToken :: B.ByteString -> B.ByteString -> MaybeT IO Token
+-- Injects new auth token into state monad
+requestToken :: B.ByteString -> B.ByteString -> HaskifyAction ()
 requestToken clientId secret = do
   let requestUrl = authUrlBase <> "api/token"
   let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
-  r <- liftIO $ postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
-  MaybeT . return $ r ^? responseBody >>= decode
+  r <- lift . lift $  postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
+  tok <-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  State.put tok
 
 getAlbumSingle :: Token -> String -> MaybeT IO Album
 getAlbumSingle auth albumId = do
