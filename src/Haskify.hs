@@ -59,12 +59,13 @@ requestToken clientId secret = do
   tok <-  lift . MaybeT . return $ r ^? responseBody >>= decode
   State.put tok
 
-getAlbumSingle :: Token -> String -> MaybeT IO Album
-getAlbumSingle auth albumId = do
+getAlbumSingle ::  String -> HaskifyAction Album
+getAlbumSingle albumId = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "albums/" <> albumId)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  MaybeT . return $ r ^? responseBody >>= decode
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 getAlbumMultiple :: Token -> [String] -> MaybeT IO [Album]
 getAlbumMultiple auth albumIds = do
