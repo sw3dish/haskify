@@ -67,31 +67,35 @@ getAlbumSingle albumId = do
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ r ^? responseBody >>= decode
 
-getAlbumMultiple :: Token -> [String] -> MaybeT IO [Album]
-getAlbumMultiple auth albumIds = do
+getAlbumMultiple :: [String] -> HaskifyAction [Album]
+getAlbumMultiple albumIds = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "albums?ids=" <> (L.intercalate "," albumIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  MaybeT . return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
+  r <- lift . lift $ getWith options requestUrl
+  lift . MaybeT . return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
 
-getAudioFeaturesSingle :: Token -> String ->  MaybeT IO AudioFeatures
-getAudioFeaturesSingle auth track_id = do
+getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
+getAudioFeaturesSingle track_id = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  MaybeT . return $ r ^? responseBody >>= decode
+  r <- lift . lift $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
-getAudioFeaturesMultiple :: Token -> [String] -> MaybeT IO [AudioFeatures]
-getAudioFeaturesMultiple auth track_ids = do
+getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
+getAudioFeaturesMultiple track_ids = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (L.intercalate "," track_ids))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
+  r <- lift . lift $ getWith options requestUrl
+  lift . MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
 
 -- optional arguments that should be implemented: country, limit, offset
-getNewReleases :: Token -> MaybeT IO NewReleasesResponse
-getNewReleases auth = do
+getNewReleases :: HaskifyAction NewReleasesResponse
+getNewReleases = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "browse/new-releases/")
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  MaybeT . return $ r ^? responseBody >>= decode
+  lift . MaybeT . return $ r ^? responseBody >>= decode
