@@ -27,9 +27,9 @@ main = do
     runTest "testGetRecentReleases" testGetRecentReleases) (Token undefined undefined)
   return ()
     where runTest name test = do
-            lift . lift $ putStr name
-            test  <|> (lift . lift $ putStrLn " fail")
-            lift . lift $ putStrLn " pass"
+            liftIO $ putStr name
+            test  <|> (liftIO $ putStrLn " fail")
+            liftIO $ putStrLn " pass"
 
 testRequestToken :: HaskifyAction ()
 testRequestToken = do

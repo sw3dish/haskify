@@ -53,7 +53,7 @@ requestToken :: B.ByteString -> B.ByteString -> HaskifyAction ()
 requestToken clientId secret = do
   let requestUrl = authUrlBase <> "api/token"
   let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
-  r <- lift . lift $  postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
+  r <- liftIO $  postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
   tok <-  lift . MaybeT . return $ r ^? responseBody >>= decode
   State.put tok
 
@@ -70,7 +70,7 @@ getAlbumMultiple albumIds = do
   auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "albums?ids=" <> (L.intercalate "," albumIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- lift . lift $ getWith options requestUrl
+  r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
 
 getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
@@ -78,7 +78,7 @@ getAudioFeaturesSingle track_id = do
   auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- lift . lift $ getWith options requestUrl
+  r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ r ^? responseBody >>= decode
 
 getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
@@ -86,7 +86,7 @@ getAudioFeaturesMultiple track_ids = do
   auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (L.intercalate "," track_ids))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- lift . lift $ getWith options requestUrl
+  r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
 
 -- optional arguments that should be implemented: country, limit, offset
