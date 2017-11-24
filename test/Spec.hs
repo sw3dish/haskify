@@ -14,49 +14,59 @@ import Control.Applicative
 
 import Secrets (testClientId, testClientSecret)
 
+-- These test function are very basic and only verify that the API calls are completed succesfully.
+-- No effort is made to verify that the result is expected/valid.
 main :: IO ()
 main = do
   runMaybeT $ runStateT (do 
-    testRequestToken             <|> (lift . lift $ print "fail")
-    testGetAlbumSingle           <|> (lift . lift $ print "fail")
-    testGetAlbumMultiple         <|> (lift . lift $ print "fail")
-    testGetAudioFeaturesSingle   <|> (lift . lift $ print "fail")
-    testGetAudioFeaturesMultiple <|> (lift . lift $ print "fail")
-    testGetRecentReleases        <|> (lift . lift $ print "fail")
-    ) (Token undefined undefined)
+    runTest "testRequestToken" testRequestToken
+    runTest "testGetAlbumSingle" testGetAlbumSingle
+    runTest "testGetAlbumMultiple" testGetAlbumMultiple
+    runTest "testGetAudioFeaturesSingle" testGetAudioFeaturesSingle
+    runTest "testGetAudioFeaturesMultiple" testGetAudioFeaturesMultiple
+    runTest "testGetRecentReleases" testGetRecentReleases) (Token undefined undefined)
   return ()
+    where runTest name test = do
+            lift . lift $ putStr name
+            test  <|> (lift . lift $ putStrLn " fail")
+            lift . lift $ putStrLn " pass"
 
 testRequestToken :: HaskifyAction ()
 testRequestToken = do
   requestToken testClientId testClientSecret 
-  tok <- get
-  lift . lift $ print tok
+  get
+  return ()
 
+testGetAlbumSingle :: HaskifyAction ()
 testGetAlbumSingle = do
   let album_id = "3EwfQtjvyRAXsPWAKO5FDP"
   requestToken testClientId testClientSecret
-  album <- getAlbumSingle album_id
-  lift . lift $ print album
+  getAlbumSingle album_id
+  return ()
 
+testGetAlbumMultiple :: HaskifyAction ()
 testGetAlbumMultiple = do
   let album_ids = ["6084R9tVaGpB9yefy7ObuQ", "5Dbax7G8SWrP9xyzkOvy2F", "2DuGRzpsUNe6jzGpCniZYR"]
   requestToken testClientId testClientSecret
-  albums <- getAlbumMultiple album_ids
-  lift . lift $ print albums
+  getAlbumMultiple album_ids
+  return ()
 
+testGetAudioFeaturesSingle :: HaskifyAction ()
 testGetAudioFeaturesSingle = do
   let track_id = "1ZLfI1KqHS2JFP7lKsC8bl" :: String
   requestToken testClientId testClientSecret
-  audio_features <- getAudioFeaturesSingle track_id
-  lift . lift $ print audio_features
+  getAudioFeaturesSingle track_id
+  return ()
 
+testGetAudioFeaturesMultiple :: HaskifyAction ()
 testGetAudioFeaturesMultiple = do
   let track_ids = ["1ZLfI1KqHS2JFP7lKsC8bl", "2MW0ofGJTi9RfoCMPsfGrJ", "2jz1bw1p0WQj0PDnVDP0uY"] :: [String]
   requestToken testClientId testClientSecret
-  audio_features <- getAudioFeaturesMultiple track_ids
-  lift . lift $ print audio_features
+  getAudioFeaturesMultiple track_ids
+  return ()
 
+testGetRecentReleases :: HaskifyAction ()
 testGetRecentReleases = do
   requestToken testClientId testClientSecret
-  album <- getNewReleases 
-  lift . lift $ print album
+  getNewReleases
+  return ()
