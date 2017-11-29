@@ -36,6 +36,10 @@ import Data.Aeson (toJSON, FromJSON, parseJSON, withObject, (.:))
 import Data.Aeson.Types (parseMaybe)
 
 import Control.Monad
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
+import Control.Monad.IO.Class
+import qualified Control.Monad.Trans.State.Lazy as State
 
 apiUrlBase, apiVersion :: String
 apiUrlBase = "https://api.spotify.com/"
@@ -45,40 +49,46 @@ authUrlBase :: String
 authUrlBase = "https://accounts.spotify.com/"
 
 -- Request an auth token from the spotify api
-requestToken :: B.ByteString -> B.ByteString -> IO (Maybe Token)
+-- Injects new auth token into state monad
+requestToken :: B.ByteString -> B.ByteString -> HaskifyAction ()
 requestToken clientId secret = do
   let requestUrl = authUrlBase <> "api/token"
   let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
-  r <- postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
-  return $   ((r ^? responseBody >>= decode) :: Maybe Token)
+  r <- liftIO $  postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
+  tok <-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  State.put tok
 
-getAlbumSingle :: Token -> String -> IO (Maybe Album)
-getAlbumSingle auth albumId = do
+getAlbumSingle ::  String -> HaskifyAction Album
+getAlbumSingle albumId = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "albums/" <> albumId)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- getWith options requestUrl
-  return $ ((r ^? responseBody >>= decode) :: Maybe Album)
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
-getAlbumMultiple :: Token -> [String] -> IO (Maybe [Album])
-getAlbumMultiple auth albumIds = do
+getAlbumMultiple :: [String] -> HaskifyAction [Album]
+getAlbumMultiple albumIds = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "albums?ids=" <> (L.intercalate "," albumIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- getWith options requestUrl
-  return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
 
-getAudioFeaturesSingle :: Token -> String -> IO (Maybe AudioFeatures)
-getAudioFeaturesSingle auth track_id = do
+getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
+getAudioFeaturesSingle track_id = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- getWith options requestUrl
-  return $ ((r ^? responseBody >>= decode) :: Maybe AudioFeatures)
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
-getAudioFeaturesMultiple :: Token -> [String] -> IO (Maybe [AudioFeatures])
-getAudioFeaturesMultiple auth track_ids = do
+getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
+getAudioFeaturesMultiple track_ids = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (L.intercalate "," track_ids))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- getWith options requestUrl
-  return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
 
 getPagingNext,getPagingPrevious :: FromJSON a => Token -> Paging a -> IO (Maybe (Paging a))
 getPagingNext     auth page = join <$> (mapM (getPaging auth . T.unpack) $ paging_next page)
@@ -91,9 +101,10 @@ getPaging auth requestUrl = putStrLn requestUrl >> do
   (print (r ^? responseBody)) >> (return $ (r ^? responseBody) >>= decode)
 
 -- optional arguments that should be implemented: country, limit, offset
-getNewReleases :: Token -> IO (Maybe NewReleasesResponse)
-getNewReleases auth = do
+getNewReleases :: HaskifyAction NewReleasesResponse
+getNewReleases = do
+  auth <- State.get
   let requestUrl = (apiUrlBase <> apiVersion <> "browse/new-releases/")
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- getWith options requestUrl
-  return $ r ^? responseBody >>= decode
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
