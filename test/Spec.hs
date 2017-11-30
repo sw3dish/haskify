@@ -24,6 +24,7 @@ main = do
     runTest "testGetAlbumMultiple" testGetAlbumMultiple
     runTest "testGetAudioFeaturesSingle" testGetAudioFeaturesSingle
     runTest "testGetAudioFeaturesMultiple" testGetAudioFeaturesMultiple
+    runTest "testGetPagingNext" testGetPagingNext
     runTest "testGetRecentReleases" testGetRecentReleases) (Token undefined undefined)
   return ()
     where runTest name test = do
@@ -65,12 +66,12 @@ testGetAudioFeaturesMultiple = do
   getAudioFeaturesMultiple track_ids
   return ()
 
+testGetPagingNext :: HaskifyAction ()
 testGetPagingNext = do
-  auth <- requestToken testClientId testClientSecret
-  testPage <- join <$> (sequence $ getNewReleases <$> auth )
-  print testPage
-  nextPage <- sequence $ (getPagingNext <$> auth <*> ( newreleases_albums <$> testPage))
-  print nextPage
+  requestToken testClientId testClientSecret
+  testPage <- newreleases_albums <$>  getNewReleases
+  nextPage <- getPagingNext testPage
+  return ()
 
 testGetRecentReleases :: HaskifyAction ()
 testGetRecentReleases = do

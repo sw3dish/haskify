@@ -90,15 +90,20 @@ getAudioFeaturesMultiple track_ids = do
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
 
-getPagingNext,getPagingPrevious :: FromJSON a => Token -> Paging a -> IO (Maybe (Paging a))
-getPagingNext     auth page = join <$> (mapM (getPaging auth . T.unpack) $ paging_next page)
-getPagingPrevious auth page = join <$> (mapM (getPaging auth . T.unpack) $ paging_previous page)
+getPagingNext,getPagingPrevious :: FromJSON a => Paging a -> HaskifyAction (Paging a)
+getPagingNext page = do
+  next <- lift . MaybeT . return $ paging_next page
+  getPaging . T.unpack $ next
+getPagingPrevious page = do
+  prev <- lift . MaybeT . return $ paging_previous page
+  getPaging . T.unpack $ prev
 
-getPaging :: FromJSON a => Token -> String -> IO(Maybe (Paging a))
-getPaging auth requestUrl = putStrLn requestUrl >> do
+getPaging :: FromJSON a => String -> HaskifyAction (Paging a)
+getPaging requestUrl = do
+  auth <- State.get
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- getWith options requestUrl
-  (print (r ^? responseBody)) >> (return $ (r ^? responseBody) >>= decode)
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- optional arguments that should be implemented: country, limit, offset
 getNewReleases :: HaskifyAction NewReleasesResponse
