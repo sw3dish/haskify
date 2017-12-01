@@ -6,6 +6,7 @@ import Data.Aeson (decode, withObject)
 import Data.Aeson.Types (parseMaybe)
 import qualified Data.ByteString.Base64 as B64 (encode)
 import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 import Data.Text.Encoding (encodeUtf8)
 import Data.List
 import Data.Monoid
@@ -24,6 +25,12 @@ apiVersion = "v1/"
 authUrlBase :: String
 authUrlBase = "https://accounts.spotify.com/"
 
+haskifyDefaultOptions :: Token -> Options
+haskifyDefaultOptions auth = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
+
+haskifyGetEndpoint :: Token -> String -> IO (Response BL.ByteString)
+haskifyGetEndpoint auth = getWith (haskifyDefaultOptions auth)
+
 -- Request an auth token from the spotify api
 -- Injects new auth token into state monad
 requestToken :: B.ByteString -> B.ByteString -> HaskifyAction ()
@@ -39,8 +46,7 @@ getAlbumSingle ::  String -> HaskifyAction Album
 getAlbumSingle albumId = do
   auth <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "albums/" <> albumId
-  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
-  r <- liftIO $ getWith options requestUrl
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/albums?ids={ids}
@@ -48,8 +54,7 @@ getAlbumMultiple :: [String] -> HaskifyAction [Album]
 getAlbumMultiple albumIds = do
   auth <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "albums?ids=" <> intercalate "," albumIds
-  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
-  r <- liftIO $ getWith options requestUrl
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
   haskifyLiftMaybe $ parseMaybe album_array =<< decode =<< (r ^? responseBody)
 
 -- /v1/albums/{id}/tracks
@@ -69,8 +74,7 @@ getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
 getAudioFeaturesSingle track_id = do
   auth <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "audio-features/" <> track_id
-  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
-  r <- liftIO $ getWith options requestUrl
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/audio-features?ids={ids}
@@ -78,8 +82,7 @@ getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
 getAudioFeaturesMultiple track_ids = do
   auth <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "audio-features?ids=" <> intercalate "," track_ids
-  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
-  r <- liftIO $ getWith options requestUrl
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
   haskifyLiftMaybe $ parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)
 
 -- /v1/browse/featured-playlists
@@ -90,8 +93,7 @@ getNewReleases :: HaskifyAction NewReleasesResponse
 getNewReleases = do
   auth <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "browse/new-releases/"
-  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
-  r <- liftIO $ getWith options requestUrl
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/browse/categories
@@ -113,6 +115,5 @@ search types query = do
   auth <- State.get
   let search_type = intercalate "," $ map searchTypeString types
   let requestUrl = apiUrlBase <> apiVersion <> "search?type=" <> search_type <> "&q=" <> query
-  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
-  r <- liftIO $ getWith options requestUrl
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode
