@@ -33,6 +33,9 @@ import qualified Control.Monad.Trans.State.Lazy as State
 
 type HaskifyAction = State.StateT Token (MaybeT IO)
 
+haskifyLiftMaybe :: Maybe a -> HaskifyAction a
+haskifyLiftMaybe = lift . MaybeT . return
+
 data Token = Token {
   access_token :: T.Text
   , expires_in :: POSIXTime
@@ -125,6 +128,9 @@ makeAlbumType "compilation" = TypeCompilation
 album_array :: Value -> Parser [Album]
 album_array = withObject "album_array" $ \o -> o .: "albums"
 
+--temporary untill full artist type is implemented
+type Artist = ArtistSimplified
+
 data ArtistSimplified = ArtistSimplified {
    artist_external_urls :: ExternalURL
   ,artist_href :: T.Text
@@ -185,6 +191,9 @@ instance FromJSON a => FromJSON (Paging a) where
     <*> (v .: "offset")
     <*> (v .:? "previous")
     <*> (v .: "total")
+
+--temporary definition
+type Track = TrackSimplified
 
 data TrackSimplified = TrackSimplified {
    track_artists :: [ArtistSimplified]
@@ -290,10 +299,9 @@ instance FromJSON AudioFeatures where
 audiofeatures_array :: Value -> Parser [AudioFeatures]
 audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_features"
 
-data SearchType = SearchTypeAlbum | SearchTypePlaylist | SearchTypeArtist | SearchTypeTrack deriving (Show, Enum, Bounded)
+data SearchType = SearchTypeAlbum | SearchTypeArtist | SearchTypeTrack deriving (Show, Enum, Bounded)
 
 searchTypeString SearchTypeAlbum = "album"
-searchTypeString SearchTypePlaylist = "playlist"
 searchTypeString SearchTypeArtist = "artist"
 searchTypeString SearchTypeTrack = "track"
 
@@ -307,3 +315,12 @@ instance FromJSON NewReleasesResponse where
     message <- v .:? "message"
     content <- v .: "albums"
     return $ NewReleasesResponse (message, content)
+
+newtype SearchResponse = SearchResponse (Maybe (Paging Artist), Maybe (Paging AlbumSimplified), Maybe (Paging Track)) deriving (Show)
+
+instance FromJSON SearchResponse where
+  parseJSON = withObject "SearchResponse" $ \v -> do
+    artists <- v .:? "artists"
+    albums  <- v .:? "albums"
+    tracks  <- v .:? "tracks"
+    return $ SearchResponse (artists, albums, tracks)
