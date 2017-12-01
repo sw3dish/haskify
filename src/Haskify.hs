@@ -26,9 +26,9 @@ import Data.Monoid
 
 import Types
 
-import Data.Text as T
+import qualified Data.Text as T
 
-import Data.List as L
+import Data.List
 
 -- Convert from text to bytestring
 import Data.Text.Encoding (encodeUtf8)
@@ -70,7 +70,7 @@ getAlbumSingle albumId = do
 getAlbumMultiple :: [String] -> HaskifyAction [Album]
 getAlbumMultiple albumIds = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "albums?ids=" <> (L.intercalate "," albumIds))
+  let requestUrl = (apiUrlBase <> apiVersion <> "albums?ids=" <> (intercalate "," albumIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
@@ -215,3 +215,14 @@ getTrackMultiple trackIds = do
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe track_array =<< decode =<< (r ^? responseBody)) :: Maybe [Track])
+
+-- /v1/search
+--TODO: Come up with a haskell encoding for the query string
+search :: [SearchType] -> String -> HaskifyAction SearchResponse
+search types query = do
+  auth <- State.get
+  let search_type = intercalate "," $ map searchTypeString types
+  let requestUrl = apiUrlBase <> apiVersion <> "search?type=" <> search_type <> "&q=" <> query
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode

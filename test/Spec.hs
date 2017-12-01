@@ -37,8 +37,8 @@ main = do
     runTest "testGetCategoryPlaylists" testGetCategoryPlaylists
     runTest "testGetTrackSingle" testGetTrackSingle
     runTest "testGetTrackMultiple" testGetTrackMultiple
-    --runTest "printF" printF
-    ) (Token undefined undefined)
+    runTest "testSearchAlbum" testSearchAlbums
+    runTest "testSearchAll" testSearchAll) (Token undefined undefined)
   return ()
     where runTest name test = do
             liftIO $ putStr name
@@ -168,10 +168,18 @@ testGetTrackMultiple = do
   getTrackMultiple trackIds
   return ()
 
-printF :: HaskifyAction ()
-printF = do
-  let artistId = "4DMSJzGjw2SMkKAT5EEE5u"
+testSearchAlbums :: HaskifyAction ()
+testSearchAlbums = do
   requestToken testClientId testClientSecret
-  artist <- getArtistSingle artistId
-  liftIO $ print artist
+  (SearchResponse (_,y,x))  <- search [SearchTypeAlbum] "test"
+  _ <- haskifyLiftMaybe y
+  return ()
+
+testSearchAll :: HaskifyAction ()
+testSearchAll = do
+  requestToken testClientId testClientSecret
+  (SearchResponse (x,y,z)) <- search [SearchTypeTrack, SearchTypeAlbum, SearchTypeArtist] "test"
+  _ <- haskifyLiftMaybe x
+  _ <- haskifyLiftMaybe y
+  _ <- haskifyLiftMaybe z
   return ()

@@ -33,6 +33,9 @@ import qualified Control.Monad.Trans.State.Lazy as State
 
 type HaskifyAction = State.StateT Token (MaybeT IO)
 
+haskifyLiftMaybe :: Maybe a -> HaskifyAction a
+haskifyLiftMaybe = lift . MaybeT . return
+
 data Token = Token {
   access_token :: T.Text
   , expires_in :: POSIXTime
@@ -124,6 +127,7 @@ makeAlbumType "compilation" = TypeCompilation
 
 album_array :: Value -> Parser [Album]
 album_array = withObject "album_array" $ \o -> o .: "albums"
+
 
 data Artist = Artist{
   artist_external_urls :: ExternalURL
@@ -380,6 +384,7 @@ instance FromJSON AudioFeatures where
 audiofeatures_array :: Value -> Parser [AudioFeatures]
 audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_features"
 
+
 data PlaylistSimplified = PlaylistSimplified {
   playlistsimplified_collaborative :: Bool
   ,playlistsimplified_external_urls :: ExternalURL
@@ -456,6 +461,13 @@ instance FromJSON Category where
     <*> (v .: "id")
     <*> (v .: "name")
 
+data SearchType = SearchTypeAlbum | SearchTypeArtist | SearchTypeTrack deriving (Show, Enum, Bounded)
+
+searchTypeString SearchTypeAlbum = "album"
+searchTypeString SearchTypeArtist = "artist"
+searchTypeString SearchTypeTrack = "track"
+
+
 -- The API spec says that the message should always be present. In  practice, it seems to never be present.
 -- This field could be removed if we can confirm that no message is given in response.
 -- It might be worth reporting this as an issue to the developers of the API.
@@ -488,3 +500,13 @@ instance FromJSON CategoryPlaylistsResponse where
   parseJSON = withObject "CategoryPlaylistsResponse" $ \v -> do
     content <- v .: "playlists"
     return $ CategoryPlaylistsResponse (content)
+
+newtype SearchResponse = SearchResponse (Maybe (Paging Artist), Maybe (Paging AlbumSimplified), Maybe (Paging Track)) deriving (Show)
+
+instance FromJSON SearchResponse where
+  parseJSON = withObject "SearchResponse" $ \v -> do
+    artists <- v .:? "artists"
+    albums  <- v .:? "albums"
+    tracks  <- v .:? "tracks"
+    return $ SearchResponse (artists, albums, tracks)
+
