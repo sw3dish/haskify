@@ -1,44 +1,21 @@
 module Haskify where
 
--- Recommended Imports and Extensions for Wreq
-
--- Make it easy to write literal ByteString and Text values.
-{-# LANGUAGE OverloadedStrings #-}
-
--- Our handy module.
 import Network.Wreq
 
--- Operators such as (&) and (.~).
-import Control.Lens
-
--- Conversion of Haskell values to JSON.
-import Data.Aeson (toJSON, decode, Value)
-
--- Easy traversal of JSON data.
-import Data.Aeson.Lens (key, nth)
-
--- End recommended imports
-
--- Encode strings in b64 as required by authorization api
+import Data.Aeson (decode, withObject)
+import Data.Aeson.Types (parseMaybe)
 import qualified Data.ByteString.Base64 as B64 (encode)
 import qualified Data.ByteString as B
-import Data.Monoid
-
-import Types
-
-import qualified Data.Text as T
-
-import Data.List
-
--- Convert from text to bytestring
 import Data.Text.Encoding (encodeUtf8)
-import Data.Aeson (toJSON, FromJSON, parseJSON, withObject, (.:))
-import Data.Aeson.Types (parseMaybe)
+import Data.List
+import Data.Monoid
 
 import Control.Monad.Trans
 import Control.Monad.Trans.Maybe
-import Control.Monad.IO.Class
 import qualified Control.Monad.Trans.State.Lazy as State
+import Control.Lens
+
+import Types
 
 apiUrlBase, apiVersion :: String
 apiUrlBase = "https://api.spotify.com/"

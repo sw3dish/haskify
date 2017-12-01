@@ -2,14 +2,10 @@
 
 import Haskify
 import Types
-import Data.Maybe (fromJust)
-import Control.Monad
-import Control.Monad.Trans
-import Control.Monad.Trans.Maybe
+
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.State.Lazy
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
 import Control.Applicative
 
 import Secrets (testClientId, testClientSecret)
