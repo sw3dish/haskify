@@ -377,6 +377,197 @@ instance FromJSON AudioFeatures where
       audiofeatures_track_href audiofeatures_analysis_url
       audiofeatures_duration_ms audiofeatures_time_signature
 
+-- use the AudioAnalysis object at your own risk
+-- the documentation is extremely lacking on how it is formed and defined
+
+data AudioAnalysis = AudioAnalysis {
+  audioanalysis_meta :: Meta
+  ,audioanalysis_track :: AudioAnalysisTrack
+  ,audioanalysis_bars :: [Bar]
+  ,audioanalysis_beats :: [Beat]
+  ,audioanalysis_tatums :: [Tatum]
+  ,audioanalysis_sections :: [Section]
+  ,audioanalysis_segments :: [Segment]
+} deriving (Show)
+
+instance FromJSON AudioAnalysis where
+  parseJSON = withObject "AudioAnalysis" $ \v -> AudioAnalysis
+    <$> (v .: "meta") 
+    <*> (v .: "track")
+    <*> (v .: "bars")
+    <*> (v .: "beats")
+    <*> (v .: "tatums")
+    <*> (v .: "sections")
+    <*> (v .: "segments")
+
+data Bar = Bar {
+  bar_start :: Float
+  ,bar_duration :: Float
+  ,bar_confidence :: Float
+} deriving (Show)
+
+instance FromJSON Bar where
+  parseJSON = withObject "Bar" $ \v -> Bar
+    <$> (v .: "start")
+    <*> (v .: "duration")
+    <*> (v .: "confidence")
+
+data Beat = Beat {
+  beat_start :: Float
+  ,beat_duration :: Float
+  ,beat_confidence :: Float
+} deriving (Show)
+
+instance FromJSON Beat where
+  parseJSON = withObject "Beat" $ \v -> Beat
+    <$> (v .: "start")
+    <*> (v .: "duration")
+    <*> (v .: "confidence")
+
+data Meta = Meta {
+  meta_analyzer_version :: T.Text
+  ,meta_platform :: T.Text
+  ,meta_detailed_status :: T.Text
+  ,meta_status_code :: Integer
+  ,meta_timestamp :: Integer
+  ,meta_analysis_time :: Float
+  ,meta_input_process :: T.Text
+} deriving (Show)
+
+instance FromJSON Meta where
+  parseJSON = withObject "Meta" $ \v -> Meta
+    <$> (v .: "analyzer_version")
+    <*> (v .: "platform")
+    <*> (v .: "detailed_status")
+    <*> (v .: "status_code")
+    <*> (v .: "timestamp")
+    <*> (v .: "analysis_time")
+    <*> (v .: "input_process")
+
+data Section = Section {
+  section_start :: Float
+  ,section_duration :: Float
+  ,section_confidence :: Float
+  ,section_loudness :: Float
+  ,section_tempo :: Float
+  ,section_tempo_confidence :: Float
+  ,section_key :: Integer
+  ,section_key_confidence :: Float
+  ,section_mode :: Integer
+  ,section_mode_confidence :: Float
+  ,section_time_signature :: Integer
+  ,section_time_signature_confidence :: Float
+} deriving (Show)
+
+instance FromJSON Section where
+  parseJSON = withObject "Section" $ \v -> Section
+    <$> (v .: "start")
+    <*> (v .: "duration")
+    <*> (v .: "confidence")
+    <*> (v .: "loudness")
+    <*> (v .: "tempo")
+    <*> (v .: "tempo_confidence")
+    <*> (v .: "key")
+    <*> (v .: "key_confidence")
+    <*> (v .: "mode")
+    <*> (v .: "mode_confidence")
+    <*> (v .: "time_signature")
+    <*> (v .: "time_signature_confidence")
+
+data Segment = Segment {
+  segment_start :: Float
+  ,segment_duration :: Float
+  ,segment_confidence :: Float
+  ,segment_loudness_start :: Float
+  ,segment_loudness_max_time :: Float
+  ,segment_loudness_max :: Float
+  -- ,segment_loudness_end :: Float -- this is marked in the documentation, but does not appear in any results
+  ,segment_pitches :: [Float]
+  ,segment_timbre :: [Float]
+} deriving (Show)
+
+instance FromJSON Segment where
+  parseJSON = withObject "Segment" $ \v -> Segment
+    <$> (v .: "start")
+    <*> (v .: "duration")
+    <*> (v .: "confidence")
+    <*> (v .: "loudness_start")
+    <*> (v .: "loudness_max_time")
+    <*> (v .: "loudness_max")
+    -- <*> (v .: "loudness_end") -- this is marked in the documentation, but does not appear in any results
+    <*> (v .: "pitches")
+    <*> (v .: "timbre")
+
+data Tatum = Tatum {
+  tatum_start :: Float
+  ,tatum_duration :: Float
+  ,tatum_confidence :: Float
+} deriving (Show)
+
+instance FromJSON Tatum where
+  parseJSON = withObject "Tatum" $ \v -> Tatum
+    <$> (v .: "start")
+    <*> (v .: "duration")
+    <*> (v .: "confidence")
+
+data AudioAnalysisTrack = AudioAnalysisTrack {
+  audioanalysistrack_num_samples :: Integer
+  ,audioanalysistrack_duration :: Float
+  ,audioanalysistrack_sample_md5 :: T.Text
+  ,audioanalysistrack_offset_seconds :: Integer
+  ,audioanalysistrack_window_seconds :: Integer
+  ,audioanalysistrack_analysis_sample_rate :: Integer
+  ,audioanalysistrack_analysis_channels :: Integer
+  ,audioanalysistrack_end_of_fade_in :: Float
+  ,audioanalysistrack_start_of_fade_out :: Float
+  ,audioanalysistrack_loudness :: Float
+  ,audioanalysistrack_tempo :: Float
+  ,audioanalysistrack_tempo_confidence :: Float
+  ,audioanalysistrack_time_signature :: Integer
+  ,audioanalysistrack_time_signature_confidence :: Float
+  ,audioanalysistrack_key :: Integer
+  ,audioanalysistrack_key_confidence :: Float
+  ,audioanalysistrack_mode :: Integer
+  ,audioanalysistrack_mode_confidence :: Float
+  ,audioanalysistrack_codestring :: T.Text
+  ,audioanalysistrack_code_version :: Float
+  ,audioanalysistrack_echoprintstring :: T.Text
+  ,audioanalysistrack_echoprint_version :: Float
+  ,audioanalysistrack_synchstring :: T.Text
+  ,audioanalysistrack_synch_version :: Float
+  ,audioanalysistrack_rhythmstring :: T.Text
+  ,audioanalysistrack_rhythm_version :: Float
+} deriving (Show)
+
+instance FromJSON AudioAnalysisTrack where
+  parseJSON = withObject "AudioAnalysisTrack" $ \v -> AudioAnalysisTrack
+    <$> (v .: "num_samples")
+    <*> (v .: "duration")
+    <*> (v .: "sample_md5")
+    <*> (v .: "offset_seconds")
+    <*> (v .: "window_seconds")
+    <*> (v .: "analysis_sample_rate")
+    <*> (v .: "analysis_channels")
+    <*> (v .: "end_of_fade_in")
+    <*> (v .: "start_of_fade_out")
+    <*> (v .: "loudness")
+    <*> (v .: "tempo")
+    <*> (v .: "tempo_confidence")
+    <*> (v .: "time")
+    <*> (v .: "time_confidence")
+    <*> (v .: "key")
+    <*> (v .: "key_confidence")
+    <*> (v .: "mode")
+    <*> (v .: "mode_confidence")
+    <*> (v .: "codestring")
+    <*> (v .: "code_version")
+    <*> (v .: "echoprintstring")
+    <*> (v .: "echoprint_version")
+    <*> (v .: "synchstring")
+    <*> (v .: "synch_version")
+    <*> (v .: "rhythmstring")
+    <*> (v .: "rhythm_version")
+
 audiofeatures_array :: Value -> Parser [AudioFeatures]
 audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_features"
 

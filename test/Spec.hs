@@ -102,6 +102,13 @@ testGetArtistRelatedArtists = do
   getArtistRelatedArtists artistId
   return ()
 
+testGetAudioAnalysis :: HaskifyAction ()
+testGetAudioAnalysis = do
+  let trackId = "1ZLfI1KqHS2JFP7lKsC8bl"
+  requestToken testClientId testClientSecret
+  getAudioAnalysis trackId
+  return ()
+
 testGetAudioFeaturesSingle :: HaskifyAction ()
 testGetAudioFeaturesSingle = do
   let trackId = "1ZLfI1KqHS2JFP7lKsC8bl"

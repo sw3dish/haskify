@@ -131,6 +131,13 @@ getArtistRelatedArtists artistId = do
   lift . MaybeT . return $ ((parseMaybe artist_array =<< decode =<< (r ^? responseBody)) :: Maybe [Artist])
 
 -- /v1/audio-analysis/{id}
+getAudioAnalysis :: String ->  HaskifyAction AudioAnalysis
+getAudioAnalysis track_id = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "audio-analysis/" <> track_id)
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/audio-features/{id}
 getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
