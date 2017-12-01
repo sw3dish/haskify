@@ -46,6 +46,8 @@ instance FromJSON Token where
     <$> v .: "access_token"
     <*> v .: "expires_in"
 
+type RequestParameter = (T.Text, T.Text)
+
 data Album = Album {
    album_type :: AlbumType
   ,album_artists    :: [ArtistSimplified]

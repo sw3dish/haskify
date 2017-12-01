@@ -54,22 +54,25 @@ testRequestToken = do
 testGetAlbumSingle :: HaskifyAction ()
 testGetAlbumSingle = do
   let albumId = "3EwfQtjvyRAXsPWAKO5FDP"
+  let optionalParameters = [("market", "GB")]
   requestToken testClientId testClientSecret
-  getAlbumSingle albumId
+  getAlbumSingle albumId optionalParameters
   return ()
 
 testGetAlbumMultiple :: HaskifyAction ()
 testGetAlbumMultiple = do
   let albumIds = ["6084R9tVaGpB9yefy7ObuQ", "5Dbax7G8SWrP9xyzkOvy2F", "2DuGRzpsUNe6jzGpCniZYR"]
+  let optionalParameters = [("market", "GB")]
   requestToken testClientId testClientSecret
-  getAlbumMultiple albumIds
+  getAlbumMultiple albumIds optionalParameters
   return ()
 
 testGetAlbumTracks :: HaskifyAction ()
 testGetAlbumTracks = do
   let albumId = "6084R9tVaGpB9yefy7ObuQ"
+  let optionalParameters = [("limit", "5"), ("offset", "1"), ("market", "GB")]
   requestToken testClientId testClientSecret
-  getAlbumTracks albumId
+  getAlbumTracks albumId optionalParameters
   return ()
 
 testGetArtistSingle :: HaskifyAction ()
@@ -89,8 +92,9 @@ testGetArtistMultiple = do
 testGetArtistAlbums :: HaskifyAction ()
 testGetArtistAlbums = do
   let artistId = "4DMSJzGjw2SMkKAT5EEE5u"
+  let optionalParameters = [("album_type", "album"), ("market", "GB"), ("limit", "5"), ("offset", "0")]
   requestToken testClientId testClientSecret
-  getArtistAlbums artistId
+  getArtistAlbums artistId optionalParameters
   return ()
 
 testGetArtistTopTracks :: HaskifyAction ()
@@ -124,61 +128,70 @@ testGetAudioFeaturesMultiple = do
 
 testGetFeaturedPlaylists :: HaskifyAction ()
 testGetFeaturedPlaylists = do
+  let optionalParameters = [("locale", "en_GB"), ("country", "GB"), ("timestamp", "2014-10-23T09:00:00"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  getFeaturedPlaylists
+  getFeaturedPlaylists optionalParameters
   return ()
 
 testGetNewReleases :: HaskifyAction ()
 testGetNewReleases = do
+  let optionalParameters = [("country", "GB"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  getNewReleases
+  getNewReleases optionalParameters
   return ()
 
 testGetCategoryMultiple :: HaskifyAction ()
 testGetCategoryMultiple = do
+  let optionalParameters = [("locale", "en_GB"), ("country", "GB"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  getCategoryMultiple
+  getCategoryMultiple optionalParameters
   return ()
 
 testGetCategorySingle :: HaskifyAction ()
 testGetCategorySingle = do
   let categoryId = "party"
+  let optionalParameters = [("locale", "en_GB"), ("country", "GB")]
   requestToken testClientId testClientSecret
-  getCategorySingle categoryId
+  getCategorySingle categoryId optionalParameters
   return ()
 
 testGetCategoryPlaylists :: HaskifyAction ()
 testGetCategoryPlaylists = do
   let categoryId = "party"
+  let optionalParameters = [("country", "GB"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  getCategoryPlaylists categoryId
+  getCategoryPlaylists categoryId optionalParameters
   return ()
 
 testGetTrackSingle :: HaskifyAction ()
 testGetTrackSingle = do
   let trackId = "1ZLfI1KqHS2JFP7lKsC8bl"
+  let optionalParameters = [("market", "GB")]
   requestToken testClientId testClientSecret
-  getTrackSingle trackId
+  getTrackSingle trackId optionalParameters
   return ()
 
 testGetTrackMultiple :: HaskifyAction ()
 testGetTrackMultiple = do
   let trackIds = ["1ZLfI1KqHS2JFP7lKsC8bl", "2MW0ofGJTi9RfoCMPsfGrJ", "2jz1bw1p0WQj0PDnVDP0uY"]
+  let optionalParameters = [("market", "GB")]
   requestToken testClientId testClientSecret
-  getTrackMultiple trackIds
+  getTrackMultiple trackIds optionalParameters
   return ()
 
 testSearchAlbums :: HaskifyAction ()
 testSearchAlbums = do
+  let optionalParameters = [("market", "GB"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  (SearchResponse (_,y,x))  <- search [SearchTypeAlbum] "test"
+  (SearchResponse (_,y,x))  <- search [SearchTypeAlbum] "test" optionalParameters
   _ <- haskifyLiftMaybe y
   return ()
 
 testSearchAll :: HaskifyAction ()
 testSearchAll = do
+  let optionalParameters = [("market", "GB"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  (SearchResponse (x,y,z)) <- search [SearchTypeTrack, SearchTypeAlbum, SearchTypeArtist] "test"
+  (SearchResponse (x,y,z)) <- search [SearchTypeTrack, SearchTypeAlbum, SearchTypeArtist] "test" optionalParameters
   _ <- haskifyLiftMaybe x
   _ <- haskifyLiftMaybe y
   _ <- haskifyLiftMaybe z
