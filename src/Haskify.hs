@@ -31,7 +31,7 @@ requestToken clientId secret = do
   let requestUrl = authUrlBase <> "api/token"
   let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
   r <- liftIO $  postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
-  tok <-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  tok <-  haskifyLiftMaybe $ r ^? responseBody >>= decode
   State.put tok
 
 -- /v1/albums/{id}
@@ -41,7 +41,7 @@ getAlbumSingle albumId = do
   let requestUrl = (apiUrlBase <> apiVersion <> "albums/" <> albumId)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/albums?ids={ids}
 getAlbumMultiple :: [String] -> HaskifyAction [Album]
@@ -50,7 +50,7 @@ getAlbumMultiple albumIds = do
   let requestUrl = (apiUrlBase <> apiVersion <> "albums?ids=" <> (intercalate "," albumIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
+  haskifyLiftMaybe $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
 
 -- /v1/albums/{id}/tracks
 
@@ -71,7 +71,7 @@ getAudioFeaturesSingle track_id = do
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/audio-features?ids={ids}
 getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
@@ -80,7 +80,7 @@ getAudioFeaturesMultiple track_ids = do
   let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (intercalate "," track_ids))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
+  haskifyLiftMaybe $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
 
 -- /v1/browse/featured-playlists
 
@@ -92,7 +92,7 @@ getNewReleases = do
   let requestUrl = (apiUrlBase <> apiVersion <> "browse/new-releases/")
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/browse/categories
 
@@ -115,4 +115,4 @@ search types query = do
   let requestUrl = apiUrlBase <> apiVersion <> "search?type=" <> search_type <> "&q=" <> query
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
