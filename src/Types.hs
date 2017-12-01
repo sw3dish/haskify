@@ -125,13 +125,54 @@ makeAlbumType "compilation" = TypeCompilation
 album_array :: Value -> Parser [Album]
 album_array = withObject "album_array" $ \o -> o .: "albums"
 
-data ArtistSimplified = ArtistSimplified {
-   artist_external_urls :: ExternalURL
+data Artist = Artist{
+  artist_external_urls :: ExternalURL
+  ,artist_followers :: Followers
+  ,artist_genres :: [Genre]
   ,artist_href :: T.Text
   ,artist_id :: T.Text
+  ,artist_images :: [Image]
   ,artist_name :: T.Text
-  ,artist_obj_type :: T.Text -- artist
-  ,artist_uri :: T.Text } deriving (Show)
+  ,artist_popularity :: Integer
+  ,artist_obj_type :: T.Text
+  ,artist_uri :: T.Text
+} deriving Show
+
+instance FromJSON Artist where
+  parseJSON = withObject "Artist" $ \v -> Artist
+    <$> (v.: "external_urls")
+    <*> (v.: "followers")
+    <*> (v.: "genres")
+    <*> (v.: "href")
+    <*> (v.: "id")
+    <*> (v.: "images")
+    <*> (v.: "name")
+    <*> (v.: "popularity")
+    <*> (v.: "type")
+    <*> (v.: "uri")
+
+artist_array :: Value -> Parser [Artist]
+artist_array = withObject "artist_array" $ \o -> o .: "artists"
+
+type Genre = T.Text
+
+data Followers = Followers {
+  followers_href :: Maybe T.Text
+  ,followers_total :: Integer
+} deriving (Show)
+
+instance FromJSON Followers where
+  parseJSON = withObject "Followers" $ \v -> Followers
+    <$> (v .:? "href")
+    <*> (v .: "total")
+
+data ArtistSimplified = ArtistSimplified {
+   artistsimplified_external_urls :: ExternalURL
+  ,artistsimplified_href :: T.Text
+  ,artistsimplified_id :: T.Text
+  ,artistsimplified_name :: T.Text
+  ,artistsimplified_obj_type :: T.Text -- artist
+  ,artistsimplified_uri :: T.Text } deriving (Show)
 
 instance FromJSON ArtistSimplified where
   parseJSON = withObject "ArtistSimplified" $ \v -> ArtistSimplified
@@ -186,22 +227,69 @@ instance FromJSON a => FromJSON (Paging a) where
     <*> (v .:? "previous")
     <*> (v .: "total")
 
-data TrackSimplified = TrackSimplified {
-   track_artists :: [ArtistSimplified]
+data Track = Track {
+  track_album :: AlbumSimplified
+  ,track_artists :: [ArtistSimplified]
   ,track_available_markets :: [T.Text]
   ,track_disc_number :: Integer
-  ,track_duration_ms :: Integer -- Change to some time type?
+  ,track_duration_ms :: Integer
   ,track_explicit :: Bool
+  ,track_external_ids :: ExternalID
   ,track_external_urls :: ExternalURL
   ,track_href :: T.Text
   ,track_id :: T.Text
-  ,track_is_playable :: Maybe Bool -- only present when relinking applied
-  ,track_linked_from :: Maybe TrackLink -- only present when relinking applied
+  ,track_is_playable :: Maybe Bool
+  ,track_linked_from :: Maybe TrackLink
+  ,track_restrictions :: Maybe Restrictions
   ,track_name :: T.Text
+  ,track_popularity :: Integer
   ,track_preview_url :: Maybe T.Text
   ,track_track_number :: Integer
-  ,track_obj_type :: T.Text -- "track"
-  ,track_uri :: T.Text} deriving (Show)
+  ,track_obj_type :: T.Text
+  ,track_uri :: T.Text
+} deriving (Show)
+
+instance FromJSON Track where
+  parseJSON = withObject "Track" $ \v -> Track
+    <$> (v .: "album")
+    <*> (v .: "artists")
+    <*> (v .: "available_markets")
+    <*> (v .: "disc_number")
+    <*> (v .: "duration_ms")
+    <*> (v .: "explicit")
+    <*> (v .: "external_ids")
+    <*> (v .: "external_urls")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .:? "is_playable")
+    <*> (v .:? "linked_from")
+    <*> (v .:? "restrictions")
+    <*> (v .: "name")
+    <*> (v .: "popularity")
+    <*> (v .:? "preview_url")
+    <*> (v .: "track_number")
+    <*> (v .: "type")
+    <*> (v .: "uri")
+
+track_array :: Value -> Parser [Track]
+track_array = withObject "track_array" $ \o -> o .: "tracks"
+
+data TrackSimplified = TrackSimplified {
+   tracksimplified_artists :: [ArtistSimplified]
+  ,tracksimplified_available_markets :: [T.Text]
+  ,tracksimplified_disc_number :: Integer
+  ,tracksimplified_duration_ms :: Integer -- Change to some time type?
+  ,tracksimplified_explicit :: Bool
+  ,tracksimplified_external_urls :: ExternalURL
+  ,tracksimplified_href :: T.Text
+  ,tracksimplified_id :: T.Text
+  ,tracksimplified_is_playable :: Maybe Bool -- only present when relinking applied
+  ,tracksimplified_linked_from :: Maybe TrackLink -- only present when relinking applied
+  ,tracksimplified_name :: T.Text
+  ,tracksimplified_preview_url :: Maybe T.Text
+  ,tracksimplified_track_number :: Integer
+  ,tracksimplified_obj_type :: T.Text -- "track"
+  ,tracksimplified_uri :: T.Text} deriving (Show)
 
 instance FromJSON TrackSimplified where
   parseJSON = withObject "TrackSimplified" $ \v -> TrackSimplified
@@ -235,6 +323,8 @@ instance FromJSON TrackLink where
     <*> (v .: "id")
     <*> (v .: "type")
     <*> (v .: "uri")
+
+type Restrictions = Map T.Text T.Text -- Documentation is unclear how this object is formed
 
 data AudioFeatures = AudioFeatures {
   audiofeatures_danceability :: Float

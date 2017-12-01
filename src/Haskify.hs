@@ -76,14 +76,59 @@ getAlbumMultiple albumIds = do
   lift . MaybeT . return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
 
 -- /v1/albums/{id}/tracks
+getAlbumTracks :: String -> HaskifyAction (Paging TrackSimplified)
+getAlbumTracks albumId = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "albums/" <> albumId <> "/tracks")
+  let options = defaults & header "Authorization" .~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/artists/{id}
+getArtistSingle :: String -> HaskifyAction Artist
+getArtistSingle artistId = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "artists/" <> artistId)
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/artists?ids={ids}
+getArtistMultiple :: [String] -> HaskifyAction [Artist]
+getArtistMultiple artistIds = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "artists?ids=" <> (L.intercalate "," artistIds))
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ ((parseMaybe artist_array =<< decode =<< (r ^? responseBody)) :: Maybe [Artist])
 
 -- /v1/artists/{id}/albums
+getArtistAlbums :: String -> HaskifyAction (Paging AlbumSimplified)
+getArtistAlbums artistId = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/albums")
+  let options = defaults & header "Authorization" .~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
+
+-- /v1/artists/{id}/top-tracks?country={country}
+-- country is required
+getArtistTopTracks :: String -> String -> HaskifyAction [Track]
+getArtistTopTracks artistId country = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/top-tracks?country=" <> country)
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ ((parseMaybe track_array =<< decode =<< (r ^? responseBody)) :: Maybe [Track])
 
 -- /v1/artists/{id}/related-artists
+getArtistRelatedArtists :: String -> HaskifyAction [Artist]
+getArtistRelatedArtists artistId = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/related-artists")
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ ((parseMaybe artist_array =<< decode =<< (r ^? responseBody)) :: Maybe [Artist])
 
 -- /v1/audio-analysis/{id}
 
