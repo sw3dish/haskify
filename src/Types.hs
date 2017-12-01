@@ -24,6 +24,14 @@ import Data.Time.Clock.POSIX (POSIXTime)
 
 import Data.Maybe
 import Data.Map
+import Control.Monad
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
+import Control.Monad.IO.Class
+import Control.Monad.Trans.State.Lazy
+import qualified Control.Monad.Trans.State.Lazy as State
+
+type HaskifyAction = State.StateT Token (MaybeT IO)
 
 data Token = Token {
   access_token :: T.Text
@@ -288,3 +296,14 @@ searchTypeString SearchTypeAlbum = "album"
 searchTypeString SearchTypePlaylist = "playlist"
 searchTypeString SearchTypeArtist = "artist"
 searchTypeString SearchTypeTrack = "track"
+
+-- The API spec says that the message should always be present. In  practice, it seems to never be present.
+-- This field could be removed if we can confirm that no message is given in response.
+-- It might be worth reporting this as an issue to the developers of the API.
+newtype NewReleasesResponse = NewReleasesResponse (Maybe T.Text, Paging AlbumSimplified) deriving (Show)
+
+instance FromJSON NewReleasesResponse where
+  parseJSON = withObject "NewReleaseResponse" $ \v -> do
+    message <- v .:? "message"
+    content <- v .: "albums"
+    return $ NewReleasesResponse (message, content)

@@ -1,43 +1,72 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Haskify
+import Types
 import Data.Maybe (fromJust)
 import Control.Monad
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
+import Control.Monad.IO.Class
+import Control.Monad.Trans.State.Lazy
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import Control.Applicative
 
 import Secrets (testClientId, testClientSecret)
 
+-- These test function are very basic and only verify that the API calls are completed succesfully.
+-- No effort is made to verify that the result is expected/valid.
 main :: IO ()
 main = do
-  testRequestToken
-  testGetAlbumSingle
-  testGetAlbumMultiple
-  testGetAudioFeaturesSingle
-  testGetAudioFeaturesMultiple
+  runMaybeT $ runStateT (do 
+    runTest "testRequestToken" testRequestToken
+    runTest "testGetAlbumSingle" testGetAlbumSingle
+    runTest "testGetAlbumMultiple" testGetAlbumMultiple
+    runTest "testGetAudioFeaturesSingle" testGetAudioFeaturesSingle
+    runTest "testGetAudioFeaturesMultiple" testGetAudioFeaturesMultiple
+    runTest "testGetRecentReleases" testGetRecentReleases) (Token undefined undefined)
+  return ()
+    where runTest name test = do
+            liftIO $ putStr name
+            test  <|> (liftIO $ putStrLn " fail")
+            liftIO $ putStrLn " pass"
 
-testRequestToken = requestToken testClientId testClientSecret >>= print
+testRequestToken :: HaskifyAction ()
+testRequestToken = do
+  requestToken testClientId testClientSecret 
+  get
+  return ()
 
+testGetAlbumSingle :: HaskifyAction ()
 testGetAlbumSingle = do
   let album_id = "3EwfQtjvyRAXsPWAKO5FDP"
-  auth <- requestToken testClientId testClientSecret
-  album <- join <$> (sequence $ getAlbumSingle <$> auth <*> (pure album_id))
-  print album
+  requestToken testClientId testClientSecret
+  getAlbumSingle album_id
+  return ()
 
+testGetAlbumMultiple :: HaskifyAction ()
 testGetAlbumMultiple = do
-  let album_ids = ["6084R9tVaGpB9yefy7ObuQ", "5Dbax7G8SWrP9xyzkOvy2F", "2DuGRzpsUNe6jzGpCniZYR"] :: [String]
-  auth <- fromJust <$> requestToken testClientId testClientSecret
-  albums <- getAlbumMultiple auth album_ids
-  print albums
+  let album_ids = ["6084R9tVaGpB9yefy7ObuQ", "5Dbax7G8SWrP9xyzkOvy2F", "2DuGRzpsUNe6jzGpCniZYR"]
+  requestToken testClientId testClientSecret
+  getAlbumMultiple album_ids
+  return ()
 
+testGetAudioFeaturesSingle :: HaskifyAction ()
 testGetAudioFeaturesSingle = do
   let track_id = "1ZLfI1KqHS2JFP7lKsC8bl" :: String
-  auth <- fromJust <$> requestToken testClientId testClientSecret
-  audio_features <- getAudioFeaturesSingle auth track_id
-  print audio_features
+  requestToken testClientId testClientSecret
+  getAudioFeaturesSingle track_id
+  return ()
 
+testGetAudioFeaturesMultiple :: HaskifyAction ()
 testGetAudioFeaturesMultiple = do
   let track_ids = ["1ZLfI1KqHS2JFP7lKsC8bl", "2MW0ofGJTi9RfoCMPsfGrJ", "2jz1bw1p0WQj0PDnVDP0uY"] :: [String]
-  auth <- fromJust <$> requestToken testClientId testClientSecret
-  audio_features <- getAudioFeaturesMultiple auth track_ids
-  print audio_features
+  requestToken testClientId testClientSecret
+  getAudioFeaturesMultiple track_ids
+  return ()
+
+testGetRecentReleases :: HaskifyAction ()
+testGetRecentReleases = do
+  requestToken testClientId testClientSecret
+  getNewReleases
+  return ()
