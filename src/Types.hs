@@ -25,10 +25,12 @@ instance FromJSON Token where
     <$> v .: "access_token"
     <*> v .: "expires_in"
 
+type RequestParameter = (T.Text, T.Text)
+
 data Album = Album {
    album_type :: AlbumType
   ,album_artists    :: [ArtistSimplified]
-  ,album_available_markets :: [T.Text]
+  ,album_available_markets :: Maybe [T.Text]
   ,album_copyrights :: [Copyright]
   ,album_external_ids :: ExternalID
   ,album_external_urls :: ExternalURL
@@ -49,7 +51,7 @@ instance FromJSON Album where
   parseJSON = withObject "Album" $ \v -> Album
     <$> (v .: "album_type")
     <*> (v .: "artists")
-    <*> (v .: "available_markets")
+    <*> (v .:? "available_markets")
     <*> (v .: "copyrights")
     <*> (v .: "external_ids")
     <*> (v .: "external_urls")
@@ -72,7 +74,7 @@ instance FromJSON Album where
 data AlbumSimplified = AlbumSimplified {
    albumsimplified_type :: AlbumType
   ,albumsimplified_artists :: [ArtistSimplified]
-  ,albumsimplified_available_markets :: [T.Text]
+  ,albumsimplified_available_markets :: Maybe [T.Text]
   ,albumsimplified_external_urls :: ExternalURL
   ,albumsimplified_href :: T.Text
   ,albumsimplified_id :: T.Text
@@ -85,7 +87,7 @@ instance FromJSON AlbumSimplified where
   parseJSON = withObject "AlbumSimplified" $ \v -> AlbumSimplified
     <$> (v .: "album_type")
     <*> (v .: "artists")
-    <*> (v .: "available_markets")
+    <*> (v .:? "available_markets")
     <*> (v .: "external_urls")
     <*> (v .: "href")
     <*> (v .: "id")
@@ -213,7 +215,7 @@ instance FromJSON a => FromJSON (Paging a) where
 data Track = Track {
   track_album :: AlbumSimplified
   ,track_artists :: [ArtistSimplified]
-  ,track_available_markets :: [T.Text]
+  ,track_available_markets :: Maybe [T.Text]
   ,track_disc_number :: Integer
   ,track_duration_ms :: Integer
   ,track_explicit :: Bool
@@ -236,7 +238,7 @@ instance FromJSON Track where
   parseJSON = withObject "Track" $ \v -> Track
     <$> (v .: "album")
     <*> (v .: "artists")
-    <*> (v .: "available_markets")
+    <*> (v .:? "available_markets")
     <*> (v .: "disc_number")
     <*> (v .: "duration_ms")
     <*> (v .: "explicit")
@@ -259,7 +261,7 @@ track_array = withObject "track_array" $ \o -> o .: "tracks"
 
 data TrackSimplified = TrackSimplified {
    tracksimplified_artists :: [ArtistSimplified]
-  ,tracksimplified_available_markets :: [T.Text]
+  ,tracksimplified_available_markets :: Maybe [T.Text]
   ,tracksimplified_disc_number :: Integer
   ,tracksimplified_duration_ms :: Integer -- Change to some time type?
   ,tracksimplified_explicit :: Bool
@@ -277,7 +279,7 @@ data TrackSimplified = TrackSimplified {
 instance FromJSON TrackSimplified where
   parseJSON = withObject "TrackSimplified" $ \v -> TrackSimplified
     <$> (v .: "artists")
-    <*> (v .: "available_markets")
+    <*> (v .:? "available_markets")
     <*> (v .: "disc_number")
     <*> (v .: "duration_ms")
     <*> (v .: "explicit")
@@ -488,4 +490,3 @@ instance FromJSON SearchResponse where
     albums  <- v .:? "albums"
     tracks  <- v .:? "tracks"
     return $ SearchResponse (artists, albums, tracks)
-
