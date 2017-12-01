@@ -61,56 +61,50 @@ getAlbumMultiple albumIds = do
 getAlbumTracks :: String -> HaskifyAction (Paging TrackSimplified)
 getAlbumTracks albumId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "albums/" <> albumId <> "/tracks")
-  let options = defaults & header "Authorization" .~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  let requestUrl = apiUrlBase <> apiVersion <> "albums/" <> albumId <> "/tracks"
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/artists/{id}
 getArtistSingle :: String -> HaskifyAction Artist
 getArtistSingle artistId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "artists/" <> artistId)
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  let requestUrl = apiUrlBase <> apiVersion <> "artists/" <> artistId
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/artists?ids={ids}
 getArtistMultiple :: [String] -> HaskifyAction [Artist]
 getArtistMultiple artistIds = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "artists?ids=" <> (intercalate "," artistIds))
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ ((parseMaybe artist_array =<< decode =<< (r ^? responseBody)) :: Maybe [Artist])
+  let requestUrl = apiUrlBase <> apiVersion <> "artists?ids=" <> intercalate "," artistIds
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ parseMaybe artist_array =<< decode =<< (r ^? responseBody) 
 
 -- /v1/artists/{id}/albums
 getArtistAlbums :: String -> HaskifyAction (Paging AlbumSimplified)
 getArtistAlbums artistId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/albums")
-  let options = defaults & header "Authorization" .~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  let requestUrl = apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/albums"
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/artists/{id}/top-tracks?country={country}
 -- country is required
 getArtistTopTracks :: String -> String -> HaskifyAction [Track]
 getArtistTopTracks artistId country = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/top-tracks?country=" <> country)
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ ((parseMaybe track_array =<< decode =<< (r ^? responseBody)) :: Maybe [Track])
+  let requestUrl = apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/top-tracks?country=" <> country
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ parseMaybe track_array =<< decode =<< (r ^? responseBody)
 
 -- /v1/artists/{id}/related-artists
 getArtistRelatedArtists :: String -> HaskifyAction [Artist]
 getArtistRelatedArtists artistId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/related-artists")
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ ((parseMaybe artist_array =<< decode =<< (r ^? responseBody)) :: Maybe [Artist])
+  let requestUrl = apiUrlBase <> apiVersion <> "artists/" <> artistId <> "/related-artists"
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ parseMaybe artist_array =<< decode =<< (r ^? responseBody)
 
 -- /v1/audio-analysis/{id}
 
@@ -118,7 +112,7 @@ getArtistRelatedArtists artistId = do
 getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
 getAudioFeaturesSingle trackId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> trackId)
+  let requestUrl = apiUrlBase <> apiVersion <> "audio-features/" <> trackId
   r <- liftIO $ haskifyGetEndpoint auth requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode
 
@@ -134,10 +128,9 @@ getAudioFeaturesMultiple trackIds = do
 getFeaturedPlaylists :: HaskifyAction FeaturedPlaylistsResponse
 getFeaturedPlaylists = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "browse/featured-playlists/")
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  let requestUrl = apiUrlBase <> apiVersion <> "browse/featured-playlists/"
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/browse/new-releases
 -- optional arguments that should be implemented: country, limit, offset
@@ -152,28 +145,25 @@ getNewReleases = do
 getCategoryMultiple :: HaskifyAction CategoriesResponse
 getCategoryMultiple = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "browse/categories/")
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  let requestUrl = apiUrlBase <> apiVersion <> "browse/categories/"
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/browse/categories/{id}
 getCategorySingle :: String -> HaskifyAction Category
 getCategorySingle categoryId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "browse/categories/" <> categoryId)
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  let requestUrl = apiUrlBase <> apiVersion <> "browse/categories/" <> categoryId
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/browse/categories/{id}/playlists
 getCategoryPlaylists :: String -> HaskifyAction CategoryPlaylistsResponse
 getCategoryPlaylists categoryId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "browse/categories/" <> categoryId <> "/playlists")
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  let requestUrl = apiUrlBase <> apiVersion <> "browse/categories/" <> categoryId <> "/playlists"
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/recommendations
 
@@ -181,19 +171,17 @@ getCategoryPlaylists categoryId = do
 getTrackSingle :: String -> HaskifyAction Track
 getTrackSingle trackId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "tracks/" <> trackId)
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ r ^? responseBody >>= decode
+  let requestUrl = apiUrlBase <> apiVersion <> "tracks/" <> trackId
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ r ^? responseBody >>= decode
 
 -- /v1/tracks?ids={ids}
 getTrackMultiple :: [String] -> HaskifyAction [Track]
 getTrackMultiple trackIds = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "tracks?ids=" <> (intercalate "," trackIds))
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
-  r <- liftIO $ getWith options requestUrl
-  lift . MaybeT . return $ ((parseMaybe track_array =<< decode =<< (r ^? responseBody)) :: Maybe [Track])
+  let requestUrl = apiUrlBase <> apiVersion <> "tracks?ids=" <> intercalate "," trackIds
+  r <- liftIO $ haskifyGetEndpoint auth requestUrl
+  haskifyLiftMaybe $ parseMaybe track_array =<< decode =<< (r ^? responseBody)
 
 -- /v1/search
 --TODO: Come up with a haskell encoding for the query string
