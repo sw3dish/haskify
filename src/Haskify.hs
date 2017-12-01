@@ -57,6 +57,7 @@ requestToken clientId secret = do
   tok <-  lift . MaybeT . return $ r ^? responseBody >>= decode
   State.put tok
 
+-- /v1/albums/{id}
 getAlbumSingle ::  String -> HaskifyAction Album
 getAlbumSingle albumId = do
   auth <- State.get
@@ -65,6 +66,7 @@ getAlbumSingle albumId = do
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ r ^? responseBody >>= decode
 
+-- /v1/albums?ids={ids}
 getAlbumMultiple :: [String] -> HaskifyAction [Album]
 getAlbumMultiple albumIds = do
   auth <- State.get
@@ -73,6 +75,19 @@ getAlbumMultiple albumIds = do
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
 
+-- /v1/albums/{id}/tracks
+
+-- /v1/artists/{id}
+
+-- /v1/artists?ids={ids}
+
+-- /v1/artists/{id}/albums
+
+-- /v1/artists/{id}/related-artists
+
+-- /v1/audio-analysis/{id}
+
+-- /v1/audio-features/{id}
 getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
 getAudioFeaturesSingle track_id = do
   auth <- State.get
@@ -81,6 +96,7 @@ getAudioFeaturesSingle track_id = do
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ r ^? responseBody >>= decode
 
+-- /v1/audio-features?ids={ids}
 getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
 getAudioFeaturesMultiple track_ids = do
   auth <- State.get
@@ -89,6 +105,9 @@ getAudioFeaturesMultiple track_ids = do
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
 
+-- /v1/browse/featured-playlists
+
+-- /v1/browse/new-releases
 -- optional arguments that should be implemented: country, limit, offset
 getNewReleases :: HaskifyAction NewReleasesResponse
 getNewReleases = do
@@ -97,3 +116,15 @@ getNewReleases = do
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ r ^? responseBody >>= decode
+
+-- /v1/browse/categories
+
+-- /v1/browse/categories/{id}
+
+-- /v1/browse/categories/{id}/playlists
+
+-- /v1/recommendations
+
+-- /v1/tracks/{id}
+
+-- /v1/tracks?ids={ids}
