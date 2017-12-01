@@ -380,13 +380,111 @@ instance FromJSON AudioFeatures where
 audiofeatures_array :: Value -> Parser [AudioFeatures]
 audiofeatures_array = withObject "audiofeatures_array" $ \o -> o .: "audio_features"
 
+data PlaylistSimplified = PlaylistSimplified {
+  playlistsimplified_collaborative :: Bool
+  ,playlistsimplified_external_urls :: ExternalURL
+  ,playlistsimplified_href :: T.Text
+  ,playlistsimplified_id :: T.Text
+  ,playlistsimplified_images :: [Image]
+  ,playlistsimplified_name :: T.Text
+  ,playlistsimplified_owner :: UserPublic
+  ,playlistsimplified_public :: Maybe Bool
+  ,playlistsimplified_snapshot_id :: T.Text
+  ,playlistsimplified_tracks :: Tracks
+  ,playlistsimplified_type :: T.Text
+  ,playlistsimplified_uri :: T.Text
+} deriving (Show)
+
+instance FromJSON PlaylistSimplified where
+  parseJSON = withObject "PlaylistSimplified" $ \v -> PlaylistSimplified
+    <$> (v .: "collaborative")
+    <*> (v .: "external_urls")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .: "images")
+    <*> (v .: "name")
+    <*> (v .: "owner")
+    <*> (v .:? "public")
+    <*> (v .: "snapshot_id")
+    <*> (v .: "tracks")
+    <*> (v .: "type")
+    <*> (v .: "uri")
+
+data Tracks = Tracks {
+  tracks_href :: Maybe T.Text
+  ,tracks_total :: Integer
+} deriving (Show)
+
+instance FromJSON Tracks where
+  parseJSON = withObject "Tracks" $ \v -> Tracks
+    <$> (v .:? "href")
+    <*> (v .: "total")
+
+data UserPublic = UserPublic {
+  userpublic_display_name :: Maybe T.Text
+  ,userpublic_external_urls :: ExternalURL
+  ,userpublic_followers :: Maybe Followers -- the Spotify user does not have this field
+  ,userpublic_href :: T.Text
+  ,userpublic_id :: T.Text
+  ,userpublic_images :: Maybe [Image] -- the Spotify user does not have this field (this should be reported to the API developers)
+  ,userpublic_type :: T.Text
+  ,userpublic_uri :: T.Text
+} deriving (Show)
+
+instance FromJSON UserPublic where
+  parseJSON = withObject "UserPublic" $ \v -> UserPublic
+    <$> (v .:? "display_name")
+    <*> (v .: "external_urls")
+    <*> (v .:? "followers")
+    <*> (v .: "href")
+    <*> (v .: "id")
+    <*> (v .:? "images")
+    <*> (v .: "type")
+    <*> (v .: "uri")
+
+data Category = Category {
+  category_href :: T.Text
+  ,category_icons :: [Image]
+  ,category_id :: T.Text
+  ,category_name :: T.Text
+} deriving (Show)
+
+instance FromJSON Category where
+  parseJSON = withObject "Category" $ \v -> Category
+    <$> (v .: "href")
+    <*> (v .: "icons")
+    <*> (v .: "id")
+    <*> (v .: "name")
+
 -- The API spec says that the message should always be present. In  practice, it seems to never be present.
 -- This field could be removed if we can confirm that no message is given in response.
 -- It might be worth reporting this as an issue to the developers of the API.
 newtype NewReleasesResponse = NewReleasesResponse (Maybe T.Text, Paging AlbumSimplified) deriving (Show)
 
 instance FromJSON NewReleasesResponse where
-  parseJSON = withObject "NewReleaseResponse" $ \v -> do
+  parseJSON = withObject "NewReleasesResponse" $ \v -> do
     message <- v .:? "message"
     content <- v .: "albums"
     return $ NewReleasesResponse (message, content)
+
+newtype FeaturedPlaylistsResponse = FeaturedPlaylistsResponse (Maybe T.Text, Paging PlaylistSimplified) deriving (Show)
+
+instance FromJSON FeaturedPlaylistsResponse where
+  parseJSON = withObject "FeaturedPlaylistsResponse" $ \v -> do
+    message <- v .:? "message"
+    content <- v .: "playlists"
+    return $ FeaturedPlaylistsResponse (message, content)
+
+newtype CategoriesResponse = CategoriesResponse (Paging Category) deriving (Show)
+
+instance FromJSON CategoriesResponse where
+  parseJSON = withObject "CategoriesResponse" $ \v -> do
+    content <- v .: "categories"
+    return $ CategoriesResponse (content)
+
+newtype CategoryPlaylistsResponse = CategoryPlaylistsResponse (Paging PlaylistSimplified) deriving (Show)
+
+instance FromJSON CategoryPlaylistsResponse where
+  parseJSON = withObject "CategoryPlaylistsResponse" $ \v -> do
+    content <- v .: "playlists"
+    return $ CategoryPlaylistsResponse (content)

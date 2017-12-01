@@ -30,7 +30,13 @@ main = do
     runTest "testGetArtistRelatedArtists" testGetArtistRelatedArtists
     runTest "testGetAudioFeaturesSingle" testGetAudioFeaturesSingle
     runTest "testGetAudioFeaturesMultiple" testGetAudioFeaturesMultiple
-    runTest "testGetRecentReleases" testGetRecentReleases
+    runTest "testGetFeaturedPlaylists" testGetFeaturedPlaylists
+    runTest "testGetNewReleases" testGetNewReleases
+    runTest "testGetCategoryMultiple" testGetCategoryMultiple
+    runTest "testGetCategorySingle" testGetCategorySingle
+    runTest "testGetCategoryPlaylists" testGetCategoryPlaylists
+    runTest "testGetTrackSingle" testGetTrackSingle
+    runTest "testGetTrackMultiple" testGetTrackMultiple
     --runTest "printF" printF
     ) (Token undefined undefined)
   return ()
@@ -116,10 +122,50 @@ testGetAudioFeaturesMultiple = do
   getAudioFeaturesMultiple trackIds
   return ()
 
-testGetRecentReleases :: HaskifyAction ()
-testGetRecentReleases = do
+testGetFeaturedPlaylists :: HaskifyAction ()
+testGetFeaturedPlaylists = do
+  requestToken testClientId testClientSecret
+  getFeaturedPlaylists
+  return ()
+
+testGetNewReleases :: HaskifyAction ()
+testGetNewReleases = do
   requestToken testClientId testClientSecret
   getNewReleases
+  return ()
+
+testGetCategoryMultiple :: HaskifyAction ()
+testGetCategoryMultiple = do
+  requestToken testClientId testClientSecret
+  getCategoryMultiple
+  return ()
+
+testGetCategorySingle :: HaskifyAction ()
+testGetCategorySingle = do
+  let categoryId = "party"
+  requestToken testClientId testClientSecret
+  getCategorySingle categoryId
+  return ()
+
+testGetCategoryPlaylists :: HaskifyAction ()
+testGetCategoryPlaylists = do
+  let categoryId = "party"
+  requestToken testClientId testClientSecret
+  getCategoryPlaylists categoryId
+  return ()
+
+testGetTrackSingle :: HaskifyAction ()
+testGetTrackSingle = do
+  let trackId = "1ZLfI1KqHS2JFP7lKsC8bl"
+  requestToken testClientId testClientSecret
+  getTrackSingle trackId
+  return ()
+
+testGetTrackMultiple :: HaskifyAction ()
+testGetTrackMultiple = do
+  let trackIds = ["1ZLfI1KqHS2JFP7lKsC8bl", "2MW0ofGJTi9RfoCMPsfGrJ", "2jz1bw1p0WQj0PDnVDP0uY"]
+  requestToken testClientId testClientSecret
+  getTrackMultiple trackIds
   return ()
 
 printF :: HaskifyAction ()

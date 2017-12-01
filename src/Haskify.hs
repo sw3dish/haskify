@@ -134,23 +134,30 @@ getArtistRelatedArtists artistId = do
 
 -- /v1/audio-features/{id}
 getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
-getAudioFeaturesSingle track_id = do
+getAudioFeaturesSingle trackId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)
+  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> trackId)
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/audio-features?ids={ids}
 getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
-getAudioFeaturesMultiple track_ids = do
+getAudioFeaturesMultiple trackIds = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (L.intercalate "," track_ids))
+  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (L.intercalate "," trackIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
 
 -- /v1/browse/featured-playlists
+getFeaturedPlaylists :: HaskifyAction FeaturedPlaylistsResponse
+getFeaturedPlaylists = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "browse/featured-playlists/")
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/browse/new-releases
 -- optional arguments that should be implemented: country, limit, offset
@@ -163,13 +170,48 @@ getNewReleases = do
   lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/browse/categories
+getCategoryMultiple :: HaskifyAction CategoriesResponse
+getCategoryMultiple = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "browse/categories/")
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/browse/categories/{id}
+getCategorySingle :: String -> HaskifyAction Category
+getCategorySingle categoryId = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "browse/categories/" <> categoryId)
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/browse/categories/{id}/playlists
+getCategoryPlaylists :: String -> HaskifyAction CategoryPlaylistsResponse
+getCategoryPlaylists categoryId = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "browse/categories/" <> categoryId <> "/playlists")
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/recommendations
 
 -- /v1/tracks/{id}
+getTrackSingle :: String -> HaskifyAction Track
+getTrackSingle trackId = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "tracks/" <> trackId)
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ r ^? responseBody >>= decode
 
 -- /v1/tracks?ids={ids}
+getTrackMultiple :: [String] -> HaskifyAction [Track]
+getTrackMultiple trackIds = do
+  auth <- State.get
+  let requestUrl = (apiUrlBase <> apiVersion <> "tracks?ids=" <> (L.intercalate "," trackIds))
+  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  r <- liftIO $ getWith options requestUrl
+  lift . MaybeT . return $ ((parseMaybe track_array =<< decode =<< (r ^? responseBody)) :: Maybe [Track])
