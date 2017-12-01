@@ -2,14 +2,10 @@
 
 import Haskify
 import Types
-import Data.Maybe (fromJust)
-import Control.Monad
-import Control.Monad.Trans
-import Control.Monad.Trans.Maybe
+
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.State.Lazy
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
 import Control.Applicative
 
 import Secrets (testClientId, testClientSecret)
@@ -18,52 +14,115 @@ import Secrets (testClientId, testClientSecret)
 -- No effort is made to verify that the result is expected/valid.
 main :: IO ()
 main = do
-  runMaybeT $ runStateT (do 
+  runMaybeT $ runStateT (do
     runTest "testRequestToken" testRequestToken
     runTest "testGetAlbumSingle" testGetAlbumSingle
     runTest "testGetAlbumMultiple" testGetAlbumMultiple
+    runTest "testGetAlbumTracks" testGetAlbumTracks
+    runTest "testGetArtistSingle" testGetArtistSingle
+    runTest "testGetArtistMultiple" testGetArtistMultiple
+    runTest "testGetArtistAlbums" testGetArtistAlbums
+    runTest "testGetArtistTopTracks" testGetArtistTopTracks
+    runTest "testGetArtistRelatedArtists" testGetArtistRelatedArtists
     runTest "testGetAudioFeaturesSingle" testGetAudioFeaturesSingle
     runTest "testGetAudioFeaturesMultiple" testGetAudioFeaturesMultiple
     runTest "testGetPagingNext" testGetPagingNext
-    runTest "testGetRecentReleases" testGetRecentReleases) (Token undefined undefined)
+    runTest "testGetFeaturedPlaylists" testGetFeaturedPlaylists
+    runTest "testGetNewReleases" testGetNewReleases
+    runTest "testGetCategoryMultiple" testGetCategoryMultiple
+    runTest "testGetCategorySingle" testGetCategorySingle
+    runTest "testGetCategoryPlaylists" testGetCategoryPlaylists
+    runTest "testGetTrackSingle" testGetTrackSingle
+    runTest "testGetTrackMultiple" testGetTrackMultiple
+    runTest "testSearchAlbum" testSearchAlbums
+    runTest "testSearchAll" testSearchAll) (Token undefined undefined)
   return ()
     where runTest name test = do
             liftIO $ putStr name
-            test  <|> (liftIO $ putStrLn " fail")
+            test  <|> liftIO (putStrLn " fail")
             liftIO $ putStrLn " pass"
 
 testRequestToken :: HaskifyAction ()
 testRequestToken = do
-  requestToken testClientId testClientSecret 
+  requestToken testClientId testClientSecret
   get
   return ()
 
 testGetAlbumSingle :: HaskifyAction ()
 testGetAlbumSingle = do
-  let album_id = "3EwfQtjvyRAXsPWAKO5FDP"
+  let albumId = "3EwfQtjvyRAXsPWAKO5FDP"
   requestToken testClientId testClientSecret
-  getAlbumSingle album_id
+  getAlbumSingle albumId
   return ()
 
 testGetAlbumMultiple :: HaskifyAction ()
 testGetAlbumMultiple = do
-  let album_ids = ["6084R9tVaGpB9yefy7ObuQ", "5Dbax7G8SWrP9xyzkOvy2F", "2DuGRzpsUNe6jzGpCniZYR"]
+  let albumIds = ["6084R9tVaGpB9yefy7ObuQ", "5Dbax7G8SWrP9xyzkOvy2F", "2DuGRzpsUNe6jzGpCniZYR"]
   requestToken testClientId testClientSecret
-  getAlbumMultiple album_ids
+  getAlbumMultiple albumIds
+  return ()
+
+testGetAlbumTracks :: HaskifyAction ()
+testGetAlbumTracks = do
+  let albumId = "6084R9tVaGpB9yefy7ObuQ"
+  requestToken testClientId testClientSecret
+  getAlbumTracks albumId
+  return ()
+
+testGetArtistSingle :: HaskifyAction ()
+testGetArtistSingle = do
+  let artistId = "4DMSJzGjw2SMkKAT5EEE5u"
+  requestToken testClientId testClientSecret
+  getArtistSingle artistId
+  return ()
+
+testGetArtistMultiple :: HaskifyAction ()
+testGetArtistMultiple = do
+  let artistIds = ["4DMSJzGjw2SMkKAT5EEE5u", "6P7H3ai06vU1sGvdpBwDmE", "3WaJSfKnzc65VDgmj2zU8B"]
+  requestToken testClientId testClientSecret
+  getArtistMultiple artistIds
+  return ()
+
+testGetArtistAlbums :: HaskifyAction ()
+testGetArtistAlbums = do
+  let artistId = "4DMSJzGjw2SMkKAT5EEE5u"
+  requestToken testClientId testClientSecret
+  getArtistAlbums artistId
+  return ()
+
+testGetArtistTopTracks :: HaskifyAction ()
+testGetArtistTopTracks = do
+  let artistId = "4DMSJzGjw2SMkKAT5EEE5u"
+  let country = "US"
+  requestToken testClientId testClientSecret
+  getArtistTopTracks artistId country
+  return ()
+
+testGetArtistRelatedArtists :: HaskifyAction ()
+testGetArtistRelatedArtists = do
+  let artistId = "4DMSJzGjw2SMkKAT5EEE5u"
+  requestToken testClientId testClientSecret
+  getArtistRelatedArtists artistId
   return ()
 
 testGetAudioFeaturesSingle :: HaskifyAction ()
 testGetAudioFeaturesSingle = do
-  let track_id = "1ZLfI1KqHS2JFP7lKsC8bl" :: String
+  let trackId = "1ZLfI1KqHS2JFP7lKsC8bl"
   requestToken testClientId testClientSecret
-  getAudioFeaturesSingle track_id
+  getAudioFeaturesSingle trackId
   return ()
 
 testGetAudioFeaturesMultiple :: HaskifyAction ()
 testGetAudioFeaturesMultiple = do
-  let track_ids = ["1ZLfI1KqHS2JFP7lKsC8bl", "2MW0ofGJTi9RfoCMPsfGrJ", "2jz1bw1p0WQj0PDnVDP0uY"] :: [String]
+  let trackIds = ["1ZLfI1KqHS2JFP7lKsC8bl", "2MW0ofGJTi9RfoCMPsfGrJ", "2jz1bw1p0WQj0PDnVDP0uY"]
   requestToken testClientId testClientSecret
-  getAudioFeaturesMultiple track_ids
+  getAudioFeaturesMultiple trackIds
+  return ()
+
+testGetFeaturedPlaylists :: HaskifyAction ()
+testGetFeaturedPlaylists = do
+  requestToken testClientId testClientSecret
+  getFeaturedPlaylists
   return ()
 
 testGetPagingNext :: HaskifyAction ()
@@ -73,8 +132,58 @@ testGetPagingNext = do
   nextPage <- getPagingNext testPage
   return ()
 
-testGetRecentReleases :: HaskifyAction ()
-testGetRecentReleases = do
+testGetNewReleases :: HaskifyAction ()
+testGetNewReleases = do
   requestToken testClientId testClientSecret
   getNewReleases
+  return ()
+
+testGetCategoryMultiple :: HaskifyAction ()
+testGetCategoryMultiple = do
+  requestToken testClientId testClientSecret
+  getCategoryMultiple
+  return ()
+
+testGetCategorySingle :: HaskifyAction ()
+testGetCategorySingle = do
+  let categoryId = "party"
+  requestToken testClientId testClientSecret
+  getCategorySingle categoryId
+  return ()
+
+testGetCategoryPlaylists :: HaskifyAction ()
+testGetCategoryPlaylists = do
+  let categoryId = "party"
+  requestToken testClientId testClientSecret
+  getCategoryPlaylists categoryId
+  return ()
+
+testGetTrackSingle :: HaskifyAction ()
+testGetTrackSingle = do
+  let trackId = "1ZLfI1KqHS2JFP7lKsC8bl"
+  requestToken testClientId testClientSecret
+  getTrackSingle trackId
+  return ()
+
+testGetTrackMultiple :: HaskifyAction ()
+testGetTrackMultiple = do
+  let trackIds = ["1ZLfI1KqHS2JFP7lKsC8bl", "2MW0ofGJTi9RfoCMPsfGrJ", "2jz1bw1p0WQj0PDnVDP0uY"]
+  requestToken testClientId testClientSecret
+  getTrackMultiple trackIds
+  return ()
+
+testSearchAlbums :: HaskifyAction ()
+testSearchAlbums = do
+  requestToken testClientId testClientSecret
+  (SearchResponse (_,y,x))  <- search [SearchTypeAlbum] "test"
+  _ <- haskifyLiftMaybe y
+  return ()
+
+testSearchAll :: HaskifyAction ()
+testSearchAll = do
+  requestToken testClientId testClientSecret
+  (SearchResponse (x,y,z)) <- search [SearchTypeTrack, SearchTypeAlbum, SearchTypeArtist] "test"
+  _ <- haskifyLiftMaybe x
+  _ <- haskifyLiftMaybe y
+  _ <- haskifyLiftMaybe z
   return ()
