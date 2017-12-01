@@ -29,7 +29,7 @@ authUrlBase = "https://accounts.spotify.com/"
 requestToken :: B.ByteString -> B.ByteString -> HaskifyAction ()
 requestToken clientId secret = do
   let requestUrl = authUrlBase <> "api/token"
-  let options = defaults & header "Authorization" .~ ["Basic " <> (B64.encode $ clientId <> ":" <> secret)]
+  let options = defaults & header "Authorization" .~ ["Basic " <> B64.encode (clientId <> ":" <> secret)]
   r <- liftIO $  postWith options requestUrl ["grant_type" := ("client_credentials" :: String)]
   tok <-  haskifyLiftMaybe $ r ^? responseBody >>= decode
   State.put tok
@@ -38,8 +38,8 @@ requestToken clientId secret = do
 getAlbumSingle ::  String -> HaskifyAction Album
 getAlbumSingle albumId = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "albums/" <> albumId)
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  let requestUrl = apiUrlBase <> apiVersion <> "albums/" <> albumId
+  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
   r <- liftIO $ getWith options requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode
 
@@ -47,10 +47,10 @@ getAlbumSingle albumId = do
 getAlbumMultiple :: [String] -> HaskifyAction [Album]
 getAlbumMultiple albumIds = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "albums?ids=" <> (intercalate "," albumIds))
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  let requestUrl = apiUrlBase <> apiVersion <> "albums?ids=" <> intercalate "," albumIds
+  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  haskifyLiftMaybe $ ((parseMaybe album_array =<< decode =<< (r ^? responseBody)) :: Maybe [Album])
+  haskifyLiftMaybe $ parseMaybe album_array =<< decode =<< (r ^? responseBody)
 
 -- /v1/albums/{id}/tracks
 
@@ -68,8 +68,8 @@ getAlbumMultiple albumIds = do
 getAudioFeaturesSingle :: String ->  HaskifyAction AudioFeatures
 getAudioFeaturesSingle track_id = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features/" <> track_id)
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  let requestUrl = apiUrlBase <> apiVersion <> "audio-features/" <> track_id
+  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
   r <- liftIO $ getWith options requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode
 
@@ -77,10 +77,10 @@ getAudioFeaturesSingle track_id = do
 getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
 getAudioFeaturesMultiple track_ids = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (intercalate "," track_ids))
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  let requestUrl = apiUrlBase <> apiVersion <> "audio-features?ids=" <> intercalate "," track_ids
+  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
   r <- liftIO $ getWith options requestUrl
-  haskifyLiftMaybe $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
+  haskifyLiftMaybe $ parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)
 
 -- /v1/browse/featured-playlists
 
@@ -89,8 +89,8 @@ getAudioFeaturesMultiple track_ids = do
 getNewReleases :: HaskifyAction NewReleasesResponse
 getNewReleases = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "browse/new-releases/")
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  let requestUrl = apiUrlBase <> apiVersion <> "browse/new-releases/"
+  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
   r <- liftIO $ getWith options requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode
 
@@ -113,6 +113,6 @@ search types query = do
   auth <- State.get
   let search_type = intercalate "," $ map searchTypeString types
   let requestUrl = apiUrlBase <> apiVersion <> "search?type=" <> search_type <> "&q=" <> query
-  let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
+  let options = defaults & header "Authorization".~ ["Bearer " <> encodeUtf8 (access_token auth)]
   r <- liftIO $ getWith options requestUrl
   haskifyLiftMaybe $ r ^? responseBody >>= decode

@@ -26,7 +26,7 @@ main = do
   return ()
     where runTest name test = do
             liftIO $ putStr name
-            test  <|> (liftIO $ putStrLn " fail")
+            test  <|> liftIO (putStrLn " fail")
             liftIO $ putStrLn " pass"
 
 testRequestToken :: HaskifyAction ()
