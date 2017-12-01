@@ -97,7 +97,7 @@ getArtistSingle artistId = do
 getArtistMultiple :: [String] -> HaskifyAction [Artist]
 getArtistMultiple artistIds = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "artists?ids=" <> (L.intercalate "," artistIds))
+  let requestUrl = (apiUrlBase <> apiVersion <> "artists?ids=" <> (intercalate "," artistIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe artist_array =<< decode =<< (r ^? responseBody)) :: Maybe [Artist])
@@ -145,7 +145,7 @@ getAudioFeaturesSingle trackId = do
 getAudioFeaturesMultiple :: [String] -> HaskifyAction [AudioFeatures]
 getAudioFeaturesMultiple trackIds = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (L.intercalate "," trackIds))
+  let requestUrl = (apiUrlBase <> apiVersion <> "audio-features?ids=" <> (intercalate "," trackIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe audiofeatures_array =<< decode =<< (r ^? responseBody)) :: Maybe [AudioFeatures])
@@ -211,7 +211,7 @@ getTrackSingle trackId = do
 getTrackMultiple :: [String] -> HaskifyAction [Track]
 getTrackMultiple trackIds = do
   auth <- State.get
-  let requestUrl = (apiUrlBase <> apiVersion <> "tracks?ids=" <> (L.intercalate "," trackIds))
+  let requestUrl = (apiUrlBase <> apiVersion <> "tracks?ids=" <> (intercalate "," trackIds))
   let options = defaults & header "Authorization".~ ["Bearer " <> (encodeUtf8 $ access_token auth)]
   r <- liftIO $ getWith options requestUrl
   lift . MaybeT . return $ ((parseMaybe track_array =<< decode =<< (r ^? responseBody)) :: Maybe [Track])
