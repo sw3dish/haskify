@@ -198,6 +198,10 @@ data Paging a = Paging {
   ,paging_offset :: Integer
   ,paging_previous :: Maybe T.Text
   ,paging_total :: Integer
+
+  --Not actauly part of the JSON paging
+  --This information is used when calling pagingNext/Prev
+  ,_paging_json_wrapper :: Maybe T.Text
 } deriving (Show)
 
 instance FromJSON a => FromJSON (Paging a) where
@@ -209,6 +213,7 @@ instance FromJSON a => FromJSON (Paging a) where
     <*> (v .: "offset")
     <*> (v .:? "previous")
     <*> (v .: "total")
+    <*> (pure Nothing)
 
 data Track = Track {
   track_album :: AlbumSimplified
@@ -450,15 +455,13 @@ searchTypeString SearchTypeTrack = "track"
 -- The API spec says that the message should always be present. In  practice, it seems to never be present.
 -- This field could be removed if we can confirm that no message is given in response.
 -- It might be worth reporting this as an issue to the developers of the API.
-data NewReleasesResponse = NewReleasesResponse {
-    newreleases_message :: Maybe T.Text
-   ,newreleases_albums :: Paging AlbumSimplified} deriving (Show)
+newtype NewReleasesResponse = NewReleasesResponse (Maybe T.Text, Paging AlbumSimplified)
 
 instance FromJSON NewReleasesResponse where
   parseJSON = withObject "NewReleasesResponse" $ \v -> do
     message <- v .:? "message"
     content <- v .: "albums"
-    return $ NewReleasesResponse message content
+    return $ NewReleasesResponse (message,content)
 
 newtype FeaturedPlaylistsResponse = FeaturedPlaylistsResponse (Maybe T.Text, Paging PlaylistSimplified) deriving (Show)
 

@@ -26,8 +26,6 @@ main = do
     runTest "testGetArtistRelatedArtists" testGetArtistRelatedArtists
     runTest "testGetAudioFeaturesSingle" testGetAudioFeaturesSingle
     runTest "testGetAudioFeaturesMultiple" testGetAudioFeaturesMultiple
-    runTest "testGetPagingNext" testGetPagingNext
-    runTest "testGetPagingNextBrowse" testGetPagingNextBrowse
     runTest "testGetFeaturedPlaylists" testGetFeaturedPlaylists
     runTest "testGetNewReleases" testGetNewReleases
     runTest "testGetCategoryMultiple" testGetCategoryMultiple
@@ -35,6 +33,10 @@ main = do
     runTest "testGetCategoryPlaylists" testGetCategoryPlaylists
     runTest "testGetTrackSingle" testGetTrackSingle
     runTest "testGetTrackMultiple" testGetTrackMultiple
+    runTest "testGetPagingNext" testGetPagingNext
+    runTest "testGetPagingNext_FeaturedPlaylists" testGetPagingNext_FeaturedPlaylists
+    runTest "testGetPagingNext_NewReleases" testGetPagingNext_NewReleases
+    runTest "testGetPagingNext_CategoryMultiple" testGetPagingNext_CategoryMultiple
     runTest "testSearchAlbum" testSearchAlbums
     runTest "testSearchAll" testSearchAll) (Token undefined undefined)
   return ()
@@ -126,18 +128,10 @@ testGetFeaturedPlaylists = do
   getFeaturedPlaylists
   return ()
 
-testGetPagingNext :: HaskifyAction ()
-testGetPagingNext = do
+testGetPagingNext_FeaturedPlaylists :: HaskifyAction ()
+testGetPagingNext_FeaturedPlaylists = do
   requestToken testClientId testClientSecret
-  -- this album should have enough tracks to trigger a paging
-  testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu"
-  nextPage <- getPagingNext testPage
-  return ()
-
-testGetPagingNextBrowse :: HaskifyAction ()
-testGetPagingNextBrowse = do
-  requestToken testClientId testClientSecret
-  testPage <- newreleases_albums <$> getNewReleases
+  (FeaturedPlaylistsResponse (_, testPage)) <- getFeaturedPlaylists
   nextPage <- getPagingNext testPage
   return ()
 
@@ -147,10 +141,25 @@ testGetNewReleases = do
   getNewReleases
   return ()
 
+testGetPagingNext_NewReleases :: HaskifyAction ()
+testGetPagingNext_NewReleases = do
+  requestToken testClientId testClientSecret
+  (NewReleasesResponse (_, testPage)) <- getNewReleases
+  nextPage <- getPagingNext testPage
+  return ()
+
 testGetCategoryMultiple :: HaskifyAction ()
 testGetCategoryMultiple = do
   requestToken testClientId testClientSecret
   getCategoryMultiple
+  return ()
+
+testGetPagingNext_CategoryMultiple  :: HaskifyAction ()
+testGetPagingNext_CategoryMultiple = do
+  requestToken testClientId testClientSecret
+  (CategoriesResponse testPage) <- getCategoryMultiple
+  --liftIO $ print testPage
+  nextPage <- getPagingNext testPage
   return ()
 
 testGetCategorySingle :: HaskifyAction ()
@@ -195,4 +204,12 @@ testSearchAll = do
   _ <- haskifyLiftMaybe x
   _ <- haskifyLiftMaybe y
   _ <- haskifyLiftMaybe z
+  return ()
+
+testGetPagingNext :: HaskifyAction ()
+testGetPagingNext = do
+  requestToken testClientId testClientSecret
+  -- this album should have enough tracks to trigger a paging
+  testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu"
+  nextPage <- getPagingNext testPage
   return ()

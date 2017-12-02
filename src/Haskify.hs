@@ -2,7 +2,7 @@ module Haskify where
 
 import Network.Wreq
 
-import Data.Aeson (FromJSON, decode)
+import Data.Aeson (Value(Object), ToJSON, FromJSON, decode, encode)
 import Data.Aeson.Types (parseMaybe)
 import qualified Data.ByteString.Base64 as B64 (encode)
 import qualified Data.ByteString as B
@@ -11,11 +11,13 @@ import Data.Text.Encoding (encodeUtf8)
 import Data.List
 import Data.Monoid
 import qualified Data.Text as T
+import qualified Data.HashMap.Lazy as M
 
 import Control.Monad
 import Control.Monad.Trans
 import qualified Control.Monad.Trans.State.Lazy as State
 import Control.Lens
+import Control.Applicative
 
 import Types
 
@@ -131,7 +133,8 @@ getFeaturedPlaylists = do
   token <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "browse/featured-playlists/"
   r <- liftIO $ haskifyGetEndpoint token requestUrl
-  haskifyLiftMaybe $ r ^? responseBody >>= decode
+  (FeaturedPlaylistsResponse (msg, paging)) <- haskifyLiftMaybe $ r ^? responseBody >>= decode
+  return $ FeaturedPlaylistsResponse (msg, paging {_paging_json_wrapper = Just "playlists"})
 
 -- /v1/browse/new-releases
 -- optional arguments that should be implemented: country, limit, offset
@@ -140,7 +143,8 @@ getNewReleases = do
   token <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "browse/new-releases/"
   r <- liftIO $ haskifyGetEndpoint token requestUrl
-  haskifyLiftMaybe $ r ^? responseBody >>= decode
+  (NewReleasesResponse (msg, paging)) <- haskifyLiftMaybe $ r ^? responseBody >>= decode
+  return $ NewReleasesResponse (msg, paging {_paging_json_wrapper = Just "albums"})
 
 -- /v1/browse/categories
 getCategoryMultiple :: HaskifyAction CategoriesResponse
@@ -148,7 +152,8 @@ getCategoryMultiple = do
   token <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "browse/categories/"
   r <- liftIO $ haskifyGetEndpoint token requestUrl
-  haskifyLiftMaybe $ r ^? responseBody >>= decode
+  (CategoriesResponse paging) <- haskifyLiftMaybe $ r ^? responseBody >>= decode
+  return $ CategoriesResponse (paging {_paging_json_wrapper = Just "categories"})
 
 -- /v1/browse/categories/{id}
 getCategorySingle :: String -> HaskifyAction Category
@@ -164,7 +169,8 @@ getCategoryPlaylists categoryId = do
   token <- State.get
   let requestUrl = apiUrlBase <> apiVersion <> "browse/categories/" <> categoryId <> "/playlists"
   r <- liftIO $ haskifyGetEndpoint token requestUrl
-  haskifyLiftMaybe $ r ^? responseBody >>= decode
+  (CategoryPlaylistsResponse paging) <- haskifyLiftMaybe $ r ^? responseBody >>= decode
+  return $ CategoryPlaylistsResponse paging {_paging_json_wrapper = Just "playlists"}
 
 -- /v1/recommendations
 
@@ -197,13 +203,23 @@ search types query = do
 getPagingNext,getPagingPrevious :: FromJSON a => Paging a -> HaskifyAction (Paging a)
 getPagingNext page = do
   next <- haskifyLiftMaybe $ paging_next page
-  getPaging . T.unpack $ next
+  getPaging (_paging_json_wrapper page) . T.unpack $ next
 getPagingPrevious page = do
   prev <- haskifyLiftMaybe $ paging_previous page
-  getPaging . T.unpack $ prev
+  getPaging (_paging_json_wrapper page) . T.unpack $ prev
 
-getPaging :: FromJSON a => String -> HaskifyAction (Paging a)
-getPaging requestUrl = do
+getPaging :: FromJSON a => Maybe T.Text -> String -> HaskifyAction (Paging a)
+getPaging wrapper requestUrl = do
   token <- State.get
   r <- liftIO $ haskifyGetEndpoint token requestUrl
-  haskifyLiftMaybe $ r ^? responseBody >>= decode
+  (<|>)
+    (do
+      justWrapper <- haskifyLiftMaybe wrapper
+      (Object value) <- haskifyLiftMaybe $  r ^? responseBody >>= decode
+      pageValue <- haskifyLiftMaybe $ M.lookup justWrapper value
+      -- not a good way to do this. I want to directly decode something with type Value but I can't figure out
+      -- how to do that. Instead, I encode it as a JSON ByteString (encode) then decode the byte string to
+      -- get what I want (decode).
+      haskifyLiftMaybe (decode . encode $ pageValue))
+    (do
+      haskifyLiftMaybe $ r ^? responseBody >>= decode)
