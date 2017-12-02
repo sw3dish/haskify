@@ -45,8 +45,7 @@ main = do
   return ()
     where runTest name test = do
             liftIO $ putStr name
-            test  <|> liftIO (putStrLn " fail")
-            liftIO $ putStrLn " pass"
+            (test >> (liftIO $ putStrLn " pass")) <|> liftIO (putStrLn " fail")
 
 testRequestToken :: HaskifyAction ()
 testRequestToken = do
@@ -197,7 +196,6 @@ testGetPagingNext_CategoryPlaylists = do
   let optionalParameters = [("locale", "en_US"), ("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
   (CategoryPlaylistsResponse testPage) <- getCategoryPlaylists categoryId optionalParameters
-  --liftIO $ print testPage
   nextPage <- getPagingNext testPage
   return ()
 
