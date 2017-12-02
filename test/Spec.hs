@@ -54,22 +54,25 @@ testRequestToken = do
 testGetAlbumSingle :: HaskifyAction ()
 testGetAlbumSingle = do
   let albumId = "3EwfQtjvyRAXsPWAKO5FDP"
+  let optionalParameters = [("market", "US")]
   requestToken testClientId testClientSecret
-  getAlbumSingle albumId
+  getAlbumSingle albumId optionalParameters
   return ()
 
 testGetAlbumMultiple :: HaskifyAction ()
 testGetAlbumMultiple = do
   let albumIds = ["6084R9tVaGpB9yefy7ObuQ", "5Dbax7G8SWrP9xyzkOvy2F", "2DuGRzpsUNe6jzGpCniZYR"]
+  let optionalParameters = [("market", "US")]
   requestToken testClientId testClientSecret
-  getAlbumMultiple albumIds
+  getAlbumMultiple albumIds optionalParameters
   return ()
 
 testGetAlbumTracks :: HaskifyAction ()
 testGetAlbumTracks = do
   let albumId = "6084R9tVaGpB9yefy7ObuQ"
+  let optionalParameters = [("limit", "5"), ("offset", "1"), ("market", "US")]
   requestToken testClientId testClientSecret
-  getAlbumTracks albumId
+  getAlbumTracks albumId optionalParameters
   return ()
 
 testGetArtistSingle :: HaskifyAction ()
@@ -89,8 +92,9 @@ testGetArtistMultiple = do
 testGetArtistAlbums :: HaskifyAction ()
 testGetArtistAlbums = do
   let artistId = "4DMSJzGjw2SMkKAT5EEE5u"
+  let optionalParameters = [("album_type", "album"), ("market", "US"), ("limit", "5"), ("offset", "0")]
   requestToken testClientId testClientSecret
-  getArtistAlbums artistId
+  getArtistAlbums artistId optionalParameters
   return ()
 
 testGetArtistTopTracks :: HaskifyAction ()
@@ -124,40 +128,46 @@ testGetAudioFeaturesMultiple = do
 
 testGetFeaturedPlaylists :: HaskifyAction ()
 testGetFeaturedPlaylists = do
+  let optionalParameters = [("locale", "en_US"), ("country", "US"), ("timestamp", "2014-10-23T09:00:00"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  getFeaturedPlaylists
+  getFeaturedPlaylists optionalParameters
   return ()
 
 testGetPagingNext_FeaturedPlaylists :: HaskifyAction ()
 testGetPagingNext_FeaturedPlaylists = do
+  let optionalParameters = [("locale", "en_US"), ("country", "US"), ("timestamp", "2014-10-23T09:00:00"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  (FeaturedPlaylistsResponse (_, testPage)) <- getFeaturedPlaylists
+  (FeaturedPlaylistsResponse (_, testPage)) <- getFeaturedPlaylists optionalParameters
   nextPage <- getPagingNext testPage
   return ()
 
 testGetNewReleases :: HaskifyAction ()
 testGetNewReleases = do
+  let optionalParameters = [("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  getNewReleases
+  getNewReleases optionalParameters
   return ()
 
 testGetPagingNext_NewReleases :: HaskifyAction ()
 testGetPagingNext_NewReleases = do
+  let optionalParameters = [("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  (NewReleasesResponse (_, testPage)) <- getNewReleases
+  (NewReleasesResponse (_, testPage)) <- getNewReleases optionalParameters
   nextPage <- getPagingNext testPage
   return ()
 
 testGetCategoryMultiple :: HaskifyAction ()
 testGetCategoryMultiple = do
+  let optionalParameters = [("locale", "en_US"), ("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  getCategoryMultiple
+  getCategoryMultiple optionalParameters
   return ()
 
 testGetPagingNext_CategoryMultiple  :: HaskifyAction ()
 testGetPagingNext_CategoryMultiple = do
+  let optionalParameters = [("locale", "en_US"), ("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  (CategoriesResponse testPage) <- getCategoryMultiple
+  (CategoriesResponse testPage) <- getCategoryMultiple optionalParameters
   --liftIO $ print testPage
   nextPage <- getPagingNext testPage
   return ()
@@ -165,42 +175,48 @@ testGetPagingNext_CategoryMultiple = do
 testGetCategorySingle :: HaskifyAction ()
 testGetCategorySingle = do
   let categoryId = "party"
+  let optionalParameters = [("locale", "en_US"), ("country", "US")]
   requestToken testClientId testClientSecret
-  getCategorySingle categoryId
+  getCategorySingle categoryId optionalParameters
   return ()
 
 testGetCategoryPlaylists :: HaskifyAction ()
 testGetCategoryPlaylists = do
   let categoryId = "party"
+  let optionalParameters = [("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  getCategoryPlaylists categoryId
+  getCategoryPlaylists categoryId optionalParameters
   return ()
 
 testGetTrackSingle :: HaskifyAction ()
 testGetTrackSingle = do
   let trackId = "1ZLfI1KqHS2JFP7lKsC8bl"
+  let optionalParameters = [("market", "US")]
   requestToken testClientId testClientSecret
-  getTrackSingle trackId
+  getTrackSingle trackId optionalParameters
   return ()
 
 testGetTrackMultiple :: HaskifyAction ()
 testGetTrackMultiple = do
   let trackIds = ["1ZLfI1KqHS2JFP7lKsC8bl", "2MW0ofGJTi9RfoCMPsfGrJ", "2jz1bw1p0WQj0PDnVDP0uY"]
+  let optionalParameters = [("market", "US")]
   requestToken testClientId testClientSecret
-  getTrackMultiple trackIds
+  getTrackMultiple trackIds optionalParameters
   return ()
 
 testSearchAlbums :: HaskifyAction ()
 testSearchAlbums = do
+  let optionalParameters = [("market", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  (SearchResponse (_,y,x))  <- search [SearchTypeAlbum] "test"
+  (SearchResponse (_,y,x))  <- search [SearchTypeAlbum] "test" optionalParameters
   _ <- haskifyLiftMaybe y
   return ()
 
 testSearchAll :: HaskifyAction ()
 testSearchAll = do
+  let optionalParameters = [("market", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
-  (SearchResponse (x,y,z)) <- search [SearchTypeTrack, SearchTypeAlbum, SearchTypeArtist] "test"
+  (SearchResponse (x,y,z)) <- search [SearchTypeTrack, SearchTypeAlbum, SearchTypeArtist] "test" optionalParameters
   _ <- haskifyLiftMaybe x
   _ <- haskifyLiftMaybe y
   _ <- haskifyLiftMaybe z
@@ -210,6 +226,6 @@ testGetPagingNext :: HaskifyAction ()
 testGetPagingNext = do
   requestToken testClientId testClientSecret
   -- this album should have enough tracks to trigger a paging
-  testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu"
+  testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu" []
   nextPage <- getPagingNext testPage
   return ()
