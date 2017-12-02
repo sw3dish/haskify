@@ -37,6 +37,7 @@ main = do
     runTest "testGetPagingNext_FeaturedPlaylists" testGetPagingNext_FeaturedPlaylists
     runTest "testGetPagingNext_NewReleases" testGetPagingNext_NewReleases
     runTest "testGetPagingNext_CategoryMultiple" testGetPagingNext_CategoryMultiple
+    runTest "testGetPagingNext_CategoryPlaylists" testGetPagingNext_CategoryPlaylists
     runTest "testSearchAlbum" testSearchAlbums
     runTest "testSearchAll" testSearchAll) (Token undefined undefined)
   return ()
@@ -186,6 +187,16 @@ testGetCategoryPlaylists = do
   let optionalParameters = [("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
   getCategoryPlaylists categoryId optionalParameters
+  return ()
+
+testGetPagingNext_CategoryPlaylists  :: HaskifyAction ()
+testGetPagingNext_CategoryPlaylists = do
+  let categoryId = "party"
+  let optionalParameters = [("locale", "en_US"), ("country", "US"), ("limit", "5"), ("offset", "1")]
+  requestToken testClientId testClientSecret
+  (CategoryPlaylistsResponse testPage) <- getCategoryPlaylists categoryId optionalParameters
+  --liftIO $ print testPage
+  nextPage <- getPagingNext testPage
   return ()
 
 testGetTrackSingle :: HaskifyAction ()
