@@ -223,3 +223,6 @@ getPaging wrapper requestUrl = do
       haskifyLiftMaybe (decode . encode $ pageValue))
     (do
       haskifyLiftMaybe $ r ^? responseBody >>= decode)
+
+collectPaging :: FromJSON a => Paging a -> HaskifyAction [a]
+collectPaging page = ((paging_items page)++) <$> ((getPagingNext page >>= collectPaging) <|> (return []))

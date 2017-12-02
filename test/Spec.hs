@@ -3,6 +3,7 @@
 import Haskify
 import Types
 
+import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.State.Lazy
@@ -38,6 +39,7 @@ main = do
     runTest "testGetPagingNext_NewReleases" testGetPagingNext_NewReleases
     runTest "testGetPagingNext_CategoryMultiple" testGetPagingNext_CategoryMultiple
     runTest "testGetPagingNext_CategoryPlaylists" testGetPagingNext_CategoryPlaylists
+    runTest "testCollectPaging" testCollectPaging
     runTest "testSearchAlbum" testSearchAlbums
     runTest "testSearchAll" testSearchAll) (Token undefined undefined)
   return ()
@@ -239,4 +241,12 @@ testGetPagingNext = do
   -- this album should have enough tracks to trigger a paging
   testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu" []
   nextPage <- getPagingNext testPage
+  return ()
+
+testCollectPaging :: HaskifyAction ()
+testCollectPaging = do
+  requestToken testClientId testClientSecret
+  testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu" []
+  trackList <- collectPaging testPage
+  guard (length trackList == 114)
   return ()
