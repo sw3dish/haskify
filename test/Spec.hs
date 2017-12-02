@@ -27,6 +27,7 @@ main = do
     runTest "testGetAudioFeaturesSingle" testGetAudioFeaturesSingle
     runTest "testGetAudioFeaturesMultiple" testGetAudioFeaturesMultiple
     runTest "testGetPagingNext" testGetPagingNext
+    runTest "testGetPagingNextBrowse" testGetPagingNextBrowse
     runTest "testGetFeaturedPlaylists" testGetFeaturedPlaylists
     runTest "testGetNewReleases" testGetNewReleases
     runTest "testGetCategoryMultiple" testGetCategoryMultiple
@@ -128,7 +129,15 @@ testGetFeaturedPlaylists = do
 testGetPagingNext :: HaskifyAction ()
 testGetPagingNext = do
   requestToken testClientId testClientSecret
-  testPage <- newreleases_albums <$>  getNewReleases
+  -- this album should have enough tracks to trigger a paging
+  testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu"
+  nextPage <- getPagingNext testPage
+  return ()
+
+testGetPagingNextBrowse :: HaskifyAction ()
+testGetPagingNextBrowse = do
+  requestToken testClientId testClientSecret
+  testPage <- newreleases_albums <$> getNewReleases
   nextPage <- getPagingNext testPage
   return ()
 
