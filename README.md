@@ -1,13 +1,16 @@
 # haskify
 
-Haskify is an (currently) GETful API wrapper for
-https://developer.spotify.com/web-api/ written in Haskell
+Haskify is a (currently) GETful API wrapper for
+the [Spotify API](https://developer.spotify.com/web-api/) written in Haskell
 
 ## Getting started
 
 ````
   stack install
 ````
+
+Go to https://developer.spotify.com/my-applications/ and register an
+application for testing. Add your client ID and secret to test/Secrets.hs
 
 ## Available Endpoints
 
