@@ -9,6 +9,16 @@ https://developer.spotify.com/web-api/ written in Haskell
   stack install
 ````
 
+## Running Tests
+
+A valid spotify API key is required before running any tests. A key can be obtained at developer.spotify.com. This information then needs to be entered into `test/Secrets.hs`.
+
+To run Tests:
+
+````
+stack test
+````
+
 ## Available Endpoints
 
 Haskify supports the following endpoints:
