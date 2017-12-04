@@ -9,8 +9,20 @@ the [Spotify API](https://developer.spotify.com/web-api/) written in Haskell
   stack install
 ````
 
+<<<<<<< HEAD
 Go to https://developer.spotify.com/my-applications/ and register an
 application for testing. Add your client ID and secret to test/Secrets.hs
+=======
+## Running Tests
+
+A valid spotify API key is required before running any tests. A key can be obtained at developer.spotify.com. This information then needs to be entered into `test/Secrets.hs`.
+
+To run Tests:
+
+````
+stack test
+````
+>>>>>>> 801550cdf08400cbd9492b29df2eb52938b3db35
 
 ## Available Endpoints
 

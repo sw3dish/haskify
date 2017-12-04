@@ -3,6 +3,7 @@
 import Haskify
 import Types
 
+import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Maybe
 import Control.Monad.Trans.State.Lazy
@@ -33,13 +34,18 @@ main = do
     runTest "testGetCategoryPlaylists" testGetCategoryPlaylists
     runTest "testGetTrackSingle" testGetTrackSingle
     runTest "testGetTrackMultiple" testGetTrackMultiple
+    runTest "testGetPagingNext" testGetPagingNext
+    runTest "testGetPagingNext_FeaturedPlaylists" testGetPagingNext_FeaturedPlaylists
+    runTest "testGetPagingNext_NewReleases" testGetPagingNext_NewReleases
+    runTest "testGetPagingNext_CategoryMultiple" testGetPagingNext_CategoryMultiple
+    runTest "testGetPagingNext_CategoryPlaylists" testGetPagingNext_CategoryPlaylists
+    runTest "testCollectPaging" testCollectPaging
     runTest "testSearchAlbum" testSearchAlbums
     runTest "testSearchAll" testSearchAll) (Token undefined undefined)
   return ()
     where runTest name test = do
             liftIO $ putStr name
-            test  <|> liftIO (putStrLn " fail")
-            liftIO $ putStrLn " pass"
+            (test >> (liftIO $ putStrLn " pass")) <|> liftIO (putStrLn " fail")
 
 testRequestToken :: HaskifyAction ()
 testRequestToken = do
@@ -129,6 +135,14 @@ testGetFeaturedPlaylists = do
   getFeaturedPlaylists optionalParameters
   return ()
 
+testGetPagingNext_FeaturedPlaylists :: HaskifyAction ()
+testGetPagingNext_FeaturedPlaylists = do
+  let optionalParameters = [("locale", "en_US"), ("country", "US"), ("timestamp", "2014-10-23T09:00:00"), ("limit", "5"), ("offset", "1")]
+  requestToken testClientId testClientSecret
+  (FeaturedPlaylistsResponse (_, testPage)) <- getFeaturedPlaylists optionalParameters
+  nextPage <- getPagingNext testPage
+  return ()
+
 testGetNewReleases :: HaskifyAction ()
 testGetNewReleases = do
   let optionalParameters = [("country", "US"), ("limit", "5"), ("offset", "1")]
@@ -136,11 +150,28 @@ testGetNewReleases = do
   getNewReleases optionalParameters
   return ()
 
+testGetPagingNext_NewReleases :: HaskifyAction ()
+testGetPagingNext_NewReleases = do
+  let optionalParameters = [("country", "US"), ("limit", "5"), ("offset", "1")]
+  requestToken testClientId testClientSecret
+  (NewReleasesResponse (_, testPage)) <- getNewReleases optionalParameters
+  nextPage <- getPagingNext testPage
+  return ()
+
 testGetCategoryMultiple :: HaskifyAction ()
 testGetCategoryMultiple = do
   let optionalParameters = [("locale", "en_US"), ("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
   getCategoryMultiple optionalParameters
+  return ()
+
+testGetPagingNext_CategoryMultiple  :: HaskifyAction ()
+testGetPagingNext_CategoryMultiple = do
+  let optionalParameters = [("locale", "en_US"), ("country", "US"), ("limit", "5"), ("offset", "1")]
+  requestToken testClientId testClientSecret
+  (CategoriesResponse testPage) <- getCategoryMultiple optionalParameters
+  --liftIO $ print testPage
+  nextPage <- getPagingNext testPage
   return ()
 
 testGetCategorySingle :: HaskifyAction ()
@@ -157,6 +188,15 @@ testGetCategoryPlaylists = do
   let optionalParameters = [("country", "US"), ("limit", "5"), ("offset", "1")]
   requestToken testClientId testClientSecret
   getCategoryPlaylists categoryId optionalParameters
+  return ()
+
+testGetPagingNext_CategoryPlaylists  :: HaskifyAction ()
+testGetPagingNext_CategoryPlaylists = do
+  let categoryId = "party"
+  let optionalParameters = [("locale", "en_US"), ("country", "US"), ("limit", "5"), ("offset", "1")]
+  requestToken testClientId testClientSecret
+  (CategoryPlaylistsResponse testPage) <- getCategoryPlaylists categoryId optionalParameters
+  nextPage <- getPagingNext testPage
   return ()
 
 testGetTrackSingle :: HaskifyAction ()
@@ -191,4 +231,20 @@ testSearchAll = do
   _ <- haskifyLiftMaybe x
   _ <- haskifyLiftMaybe y
   _ <- haskifyLiftMaybe z
+  return ()
+
+testGetPagingNext :: HaskifyAction ()
+testGetPagingNext = do
+  requestToken testClientId testClientSecret
+  -- this album should have enough tracks to trigger a paging
+  testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu" []
+  nextPage <- getPagingNext testPage
+  return ()
+
+testCollectPaging :: HaskifyAction ()
+testCollectPaging = do
+  requestToken testClientId testClientSecret
+  testPage <- album_tracks <$> getAlbumSingle "1lgOEjXcAJGWEQO1q4akqu" []
+  trackList <- collectPaging testPage
+  guard (length trackList == 114)
   return ()
